@@ -15,6 +15,9 @@ watchfiles==1.2.0
 SQLAlchemy==2.0.52
 psycopg==3.3.5
 psycopg-binary==3.3.5  # pre-compiled psycopg3 — no libpq build needed
+alembic==1.19.2        # schema migrations
+Mako==1.4.1            # alembic dependency (migration template renderer)
+MarkupSafe==3.0.3      # mako dependency
 
 # Pydantic / config
 pydantic==2.13.5
