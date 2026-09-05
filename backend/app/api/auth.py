@@ -57,8 +57,8 @@ def login_access_token(
         key="access_token",
         value=access_token,
         httponly=True,
-        samesite="lax",
-        secure=False,  # Should be True in production with HTTPS
+        samesite="none",   # Required for cross-site fetch (Vercel → Render)
+        secure=True,       # Required when SameSite=None; both endpoints are HTTPS
         max_age=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
     )
     
@@ -70,7 +70,7 @@ def logout(response: Response):
     """
     Clear the authentication cookie.
     """
-    response.delete_cookie(key="access_token")
+    response.delete_cookie(key="access_token", samesite="none", secure=True)
     return {"message": "Successfully logged out"}
 
 
