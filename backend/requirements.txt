@@ -1,0 +1,42 @@
+# CareerOS Backend — Python Dependencies
+# Generated: 2026-09-05
+# Python: 3.13
+# To install: pip install -r requirements.txt
+
+# Web framework
+fastapi==0.141.1
+starlette==1.6.0
+uvicorn==0.52.4
+httptools==0.8.0
+websockets==17.1
+watchfiles==1.2.0
+
+# Database
+SQLAlchemy==2.0.52
+psycopg==3.3.5
+psycopg-binary==3.3.5  # pre-compiled psycopg3 — no libpq build needed
+
+# Pydantic / config
+pydantic==2.13.5
+pydantic-settings==2.15.0
+pydantic_core==2.46.5
+python-dotenv==1.2.3
+annotated-types==0.8.0
+annotated-doc==0.0.5
+
+# Async / HTTP
+anyio==4.15.0
+h11==0.16.0
+idna==3.19
+
+# Utilities
+click==8.5.0
+greenlet==3.5.5
+typing_extensions==4.16.0
+typing-inspection==0.4.4
+tzdata==2026.3
+PyYAML==6.0.3
+
+# File processing (future: AI resume parsing)
+pypdf==6.17.0
+python-multipart==0.0.32
