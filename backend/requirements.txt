@@ -18,9 +18,14 @@ psycopg-binary==3.3.5  # pre-compiled psycopg3 — no libpq build needed
 alembic==1.19.2        # schema migrations
 Mako==1.4.1            # alembic dependency (migration template renderer)
 MarkupSafe==3.0.3      # mako dependency
+# Security
+passlib==1.7.4
+bcrypt==3.2.2
+PyJWT==2.8.0
 
 # Pydantic / config
 pydantic==2.13.5
+email-validator==2.2.0
 pydantic-settings==2.15.0
 pydantic_core==2.46.5
 python-dotenv==1.2.3

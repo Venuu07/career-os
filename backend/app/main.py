@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.db.session import check_database_connection
+from app.api.router import api_router
 
 logger = logging.getLogger(__name__)
 
@@ -60,6 +61,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ---------------------------------------------------------------------------
+# API Routes
+# ---------------------------------------------------------------------------
+app.include_router(api_router, prefix="/api")
 
 # ---------------------------------------------------------------------------
 # Health endpoints
