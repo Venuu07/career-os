@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { SectionConfig, CareersPageResponse, JobResponse } from "@/lib/types";
 import { apiFetch } from "@/lib/api";
 import {
   LayoutTemplate,
@@ -18,8 +19,8 @@ import {
 
 export default function DashboardPage() {
   const { user, company, logout, isLoading: authLoading } = useAuth();
-  const [pageData, setPageData] = useState<Record<string, unknown> | null>(null);
-  const [jobs, setJobs] = useState<Record<string, unknown>[]>([]);
+  const [pageData, setPageData] = useState<CareersPageResponse | null>(null);
+  const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [pageLoading, setPageLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -33,8 +34,8 @@ export default function DashboardPage() {
         ]);
         setPageData(pd);
         setJobs(Array.isArray(jd) ? jd : []);
-      } catch (err: any) {
-        setError(err.message || "Failed to load dashboard data.");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Failed to load dashboard data.");
       } finally {
         setPageLoading(false);
       }
@@ -44,7 +45,7 @@ export default function DashboardPage() {
 
   const isPublished = !!pageData?.published_version;
   const draftVersion = pageData?.draft_version;
-  const sections: any[] = draftVersion?.sections_config || [];
+  const sections: SectionConfig[] = draftVersion?.sections_config || [];
 
   const hasHero = sections.some((s) => s.type === "hero");
   const hasAbout = sections.some((s) => s.type === "about");

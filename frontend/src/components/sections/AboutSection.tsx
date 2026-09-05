@@ -91,7 +91,7 @@ export function AboutInspector({ data, updateData }: InspectorProps) {
       <Field label="Layout">
         <select
           value={data.layout || "text-only"}
-          onChange={(e) => updateData({ ...data, layout: e.target.value })}
+          onChange={(e) => updateData({ ...data, layout: e.target.value as "text-only" | "text-image" })}
           className={inputCls}
         >
           <option value="text-only">Text only</option>

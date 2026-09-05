@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { PublicCareerPageResponse, JobResponse } from "@/lib/types";
-import { MapPin, Briefcase, Clock, ArrowLeft, ChevronRight } from "lucide-react";
+import { MapPin, Briefcase, ArrowLeft, ChevronRight } from "lucide-react";
 
 interface Props {
   params: Promise<{ companySlug: string; jobId: string }>;
@@ -48,11 +48,14 @@ export default async function JobDetailPage({ params }: Props) {
   if (!job) notFound();
 
   const primaryColor = page!.theme_config?.primary_color || "#18181b";
-  const meta = [
+  const primaryMeta = [
     { icon: MapPin, label: job.location, condition: !!job.location },
     { icon: Briefcase, label: formatJobType(job.job_type), condition: true },
+  ].filter((m) => m.condition && m.label);
+
+  const secondaryMeta = [
+    { label: job.department, condition: !!job.department },
     {
-      icon: Clock,
       label: job.experience_level ? capitalize(job.experience_level) + " level" : null,
       condition: !!job.experience_level,
     },
@@ -85,27 +88,35 @@ export default async function JobDetailPage({ params }: Props) {
 
       {/* Hero */}
       <div
-        className="py-16 px-6 border-b border-zinc-100 dark:border-zinc-900"
+        className="py-24 md:py-32 px-6 border-b border-zinc-100 dark:border-zinc-900"
       >
         <div className="max-w-3xl mx-auto">
-          {job.department && (
-            <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: primaryColor }}>
-              {job.department}
-            </p>
-          )}
-          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-6">
             {job.title}
           </h1>
-          <div className="flex flex-wrap gap-3 mt-5">
-            {meta.map(({ icon: Icon, label }, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-1.5 text-sm text-zinc-500 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 px-3 py-1.5 rounded-full"
-              >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
-                {label}
+          
+          <div className="flex flex-col gap-3">
+            {primaryMeta.length > 0 && (
+              <div className="flex flex-wrap items-center gap-4">
+                {primaryMeta.map(({ icon: Icon, label }, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-base text-zinc-600 dark:text-zinc-300">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{label}</span>
+                  </div>
+                ))}
               </div>
-            ))}
+            )}
+            
+            {secondaryMeta.length > 0 && (
+              <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
+                {secondaryMeta.map(({ label }, i) => (
+                  <div key={i} className="flex items-center">
+                    {i > 0 && <span className="mr-4 text-zinc-300 dark:text-zinc-700">·</span>}
+                    <span>{label}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="mt-8">

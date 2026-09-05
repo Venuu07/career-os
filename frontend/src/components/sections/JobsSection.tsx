@@ -44,7 +44,7 @@ export function JobsPreview({ data, theme, jobs = [], companySlug }: PreviewProp
                       {job.title}
                     </h3>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                      {meta.map((m: string, i: number) => (
+                      {meta.map((m: string | null | undefined, i: number) => (
                         <span key={i} className="text-xs text-zinc-500">
                           {i > 0 && <span className="mr-1.5 text-zinc-200 dark:text-zinc-700">·</span>}
                           {m}

@@ -12,7 +12,7 @@ from app.schemas.career_page import CareerPageDraftUpdate
 
 DEFAULT_SECTIONS = [
     {"id": "hero-1", "type": "hero", "order": 0, "visible": True, "data": {"title": "Join our team"}},
-    {"id": "about-1", "type": "about", "order": 1, "visible": True, "data": {"content": "We are a great company."}},
+    {"id": "about-1", "type": "about", "order": 1, "visible": True, "data": {"content": "We started with a simple belief: that the best teams build the best products. We're on a mission to make work more meaningful for everyone."}},
     {"id": "culture-1", "type": "culture", "order": 2, "visible": True, "data": {"content": "Our culture is amazing."}},
     {"id": "jobs-1", "type": "jobs", "order": 3, "visible": True, "data": {}}
 ]

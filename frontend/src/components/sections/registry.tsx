@@ -1,4 +1,4 @@
-import { ThemeConfig } from "@/lib/types";
+import { ThemeConfig, BaseSectionData } from "@/lib/types";
 import { HeroPreview, HeroInspector } from "./HeroSection";
 import { AboutPreview, AboutInspector } from "./AboutSection";
 import { CulturePreview, CultureInspector } from "./CultureSection";
@@ -8,7 +8,7 @@ import { JobsPreview, JobsInspector } from "./JobsSection";
 import { CustomPreview, CustomInspector } from "./CustomSection";
 
 export interface PreviewProps {
-  data: Record<string, unknown>;
+  data: BaseSectionData;
   theme: ThemeConfig;
   jobs?: JobItem[]; // Passed down to Jobs section
   companySlug?: string; // Passed on public pages for job detail links
@@ -26,8 +26,8 @@ export interface JobItem {
 }
 
 export interface InspectorProps {
-  data: Record<string, unknown>;
-  updateData: (newData: Record<string, unknown>) => void;
+  data: BaseSectionData;
+  updateData: (newData: BaseSectionData) => void;
 }
 
 export interface SectionDefinition {

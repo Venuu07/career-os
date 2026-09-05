@@ -1,7 +1,7 @@
 import jwt
 import uuid
 from jwt.exceptions import InvalidTokenError
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -12,7 +12,29 @@ from app.models.user import User
 from app.models.company_member import CompanyMember
 from app.schemas.auth import TokenPayload
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
+class OAuth2PasswordBearerWithCookie(OAuth2PasswordBearer):
+    async def __call__(self, request: Request) -> str | None:
+        # Try header first (preserves existing semantics and scripts)
+        authorization = request.headers.get("Authorization")
+        if authorization:
+            scheme, _, param = authorization.partition(" ")
+            if scheme.lower() == "bearer":
+                return param
+                
+        # Try cookie next (for web UI)
+        cookie_token = request.cookies.get("access_token")
+        if cookie_token:
+            return cookie_token
+            
+        if self.auto_error:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Not authenticated",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return None
+
+oauth2_scheme = OAuth2PasswordBearerWithCookie(tokenUrl="/api/auth/login")
 
 
 def get_current_user(

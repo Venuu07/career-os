@@ -1,11 +1,10 @@
 "use client";
 
-import { useEffect, useCallback, useState, useRef } from "react";
+import { useCallback, useState } from "react";
 import Link from "next/link";
 import { useBuilder } from "@/contexts/BuilderContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { SectionConfig, ThemeConfig } from "@/lib/types";
 import {
   Monitor,
   Smartphone,
@@ -32,7 +31,6 @@ export function TopBar() {
   const { company } = useAuth();
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
-  const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
 
   const saveDraft = useCallback(async () => {

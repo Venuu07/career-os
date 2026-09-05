@@ -6,12 +6,36 @@ export interface ThemeConfig {
   logo_url?: string;
 }
 
+export interface BaseSectionData {
+  title?: string;
+  subtitle?: string;
+  eyebrow?: string;
+  headline?: string;
+  subheadline?: string;
+  ctaText?: string;
+  ctaUrl?: string;
+  alignment?: "left" | "center" | "right";
+  content?: string;
+  layout?: "text-only" | "text-image";
+  imageUrl?: string;
+  imageAlt?: string;
+  introduction?: string;
+  values?: Array<{ icon: string; title: string; description: string }>;
+  items?: Array<{ icon: string; title: string; description: string }>;
+  description?: string;
+  videoUrl?: string;
+  caption?: string;
+  heading?: string;
+  body?: string;
+  [key: string]: unknown;
+}
+
 export interface SectionConfig {
   id: string;
   type: string;
   visible: boolean;
   order: number;
-  data: Record<string, unknown>;
+  data: BaseSectionData;
 }
 
 export interface CareerPageVersionResponse {

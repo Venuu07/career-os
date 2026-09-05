@@ -107,7 +107,7 @@ export function HeroInspector({ data, updateData }: InspectorProps) {
       <Field label="Alignment">
         <select
           value={data.alignment || "center"}
-          onChange={(e) => updateData({ ...data, alignment: e.target.value })}
+          onChange={(e) => updateData({ ...data, alignment: e.target.value as "left" | "center" | "right" })}
           className={inputCls}
         >
           <option value="left">Left</option>

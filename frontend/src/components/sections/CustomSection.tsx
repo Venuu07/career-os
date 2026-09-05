@@ -67,7 +67,7 @@ export function CustomInspector({ data, updateData }: InspectorProps) {
       <Field label="Text alignment">
         <select
           value={data.alignment || "left"}
-          onChange={(e) => updateData({ ...data, alignment: e.target.value })}
+          onChange={(e) => updateData({ ...data, alignment: e.target.value as "left" | "center" | "right" })}
           className={inputCls}
         >
           <option value="left">Left</option>
