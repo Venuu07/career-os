@@ -30,7 +30,7 @@ class Settings(BaseSettings):
     DEBUG: bool = False
 
     # CORS: comma-separated list of allowed origins
-    ALLOWED_ORIGINS: str = "http://localhost:3000"
+    ALLOWED_ORIGINS: str = "http://localhost:3000,https://career-os-one-livid.vercel.app"
 
     @property
     def allowed_origins_list(self) -> list[str]:
