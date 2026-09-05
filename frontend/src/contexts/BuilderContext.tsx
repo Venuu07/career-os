@@ -12,6 +12,7 @@ interface BuilderState {
   isCandidatePreview: boolean; // Distraction-free mode
   hasUnsavedChanges: boolean;
   saveStatus: "saved" | "saving" | "error" | "idle";
+  localRevision: number;
 }
 
 // Actions
@@ -25,7 +26,9 @@ type BuilderAction =
   | { type: "REMOVE_SECTION"; payload: string }
   | { type: "REORDER_SECTION"; payload: { id: string; direction: "up" | "down" } }
   | { type: "SET_THEME"; payload: Partial<ThemeConfig> }
-  | { type: "SET_SAVE_STATUS"; payload: "saved" | "saving" | "error" | "idle" };
+  | { type: "SAVE_START" }
+  | { type: "SAVE_SUCCESS"; payload: { revision: number } }
+  | { type: "SAVE_ERROR" };
 
 const initialState: BuilderState = {
   sections: [],
@@ -35,6 +38,7 @@ const initialState: BuilderState = {
   isCandidatePreview: false,
   hasUnsavedChanges: false,
   saveStatus: "idle",
+  localRevision: 0,
 };
 
 function builderReducer(state: BuilderState, action: BuilderAction): BuilderState {
@@ -45,7 +49,8 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         sections: action.payload.sections,
         theme: action.payload.theme,
         hasUnsavedChanges: false,
-        saveStatus: "saved"
+        saveStatus: "saved",
+        localRevision: 0,
       };
     case "SELECT_SECTION":
       return { ...state, selectedSectionId: action.payload };
@@ -58,6 +63,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         ...state,
         hasUnsavedChanges: true,
         saveStatus: "idle",
+        localRevision: state.localRevision + 1,
         sections: state.sections.map((s) =>
           s.id === action.payload.id ? { ...s, ...action.payload.data } : s
         ),
@@ -77,6 +83,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         ...state,
         hasUnsavedChanges: true,
         saveStatus: "idle",
+        localRevision: state.localRevision + 1,
         sections: [...state.sections, newSection],
         selectedSectionId: newSection.id, // Auto-select new section
       };
@@ -85,6 +92,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         ...state,
         hasUnsavedChanges: true,
         saveStatus: "idle",
+        localRevision: state.localRevision + 1,
         selectedSectionId: state.selectedSectionId === action.payload ? null : state.selectedSectionId,
         sections: state.sections.filter((s) => s.id !== action.payload),
       };
@@ -111,6 +119,7 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         ...state,
         hasUnsavedChanges: true,
         saveStatus: "idle",
+        localRevision: state.localRevision + 1,
         sections: sorted,
       };
     case "SET_THEME":
@@ -118,13 +127,31 @@ function builderReducer(state: BuilderState, action: BuilderAction): BuilderStat
         ...state,
         hasUnsavedChanges: true,
         saveStatus: "idle",
+        localRevision: state.localRevision + 1,
         theme: { ...state.theme, ...action.payload },
       };
-    case "SET_SAVE_STATUS":
+    case "SAVE_START":
       return { 
         ...state, 
-        saveStatus: action.payload,
-        hasUnsavedChanges: action.payload === "saved" ? false : state.hasUnsavedChanges
+        saveStatus: "saving"
+      };
+    case "SAVE_SUCCESS":
+      // Only clear dirty state if no edits happened since this save started
+      if (state.localRevision === action.payload.revision) {
+        return {
+          ...state,
+          saveStatus: "saved",
+          hasUnsavedChanges: false,
+        };
+      }
+      return {
+        ...state,
+        saveStatus: "idle", // It's idle relative to the newer unsaved changes
+      };
+    case "SAVE_ERROR":
+      return {
+        ...state,
+        saveStatus: "error",
       };
     default:
       return state;
