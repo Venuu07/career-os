@@ -15,6 +15,34 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoFilling, setIsDemoFilling] = useState(false);
+
+  const DEMO_EMAIL = "demo@careeros.dev";
+  const DEMO_PASSWORD = "Demo@12345";
+
+  const handleDemoLogin = async () => {
+    setIsDemoFilling(true);
+    setError("");
+    setEmail(DEMO_EMAIL);
+    setPassword(DEMO_PASSWORD);
+    // Small delay so state updates flush before submit
+    await new Promise((r) => setTimeout(r, 80));
+    setIsLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append("username", DEMO_EMAIL);
+      formData.append("password", DEMO_PASSWORD);
+      await apiFetch("/api/auth/login", { method: "POST", body: formData });
+      await refresh();
+      router.push("/dashboard");
+    } catch (err: unknown) {
+      const msg = (err as Error).message || "Failed to sign in.";
+      setError(msg);
+    } finally {
+      setIsLoading(false);
+      setIsDemoFilling(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,9 +220,61 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {/* Demo account entry */}
+          <div
+            className="mt-8 rounded-2xl p-5"
+            style={{
+              background: "var(--surface)",
+              border: "1.5px solid var(--border)",
+            }}
+          >
+            <div className="flex items-start gap-3 mb-3">
+              <div
+                className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5"
+                style={{ backgroundColor: "var(--green)" }}
+              >
+                <svg viewBox="0 0 16 16" fill="none" className="h-4 w-4" style={{ color: "var(--ink)" }}>
+                  <path d="M8 2a3 3 0 100 6 3 3 0 000-6zM3 13a5 5 0 0110 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
+                  Explore the demo workspace
+                </p>
+                <p className="text-xs mt-0.5" style={{ color: "var(--muted-ink)" }}>
+                  Try CareerOS with Stark Industries sample data
+                </p>
+              </div>
+            </div>
+            <button
+              id="demo-login-btn"
+              type="button"
+              onClick={handleDemoLogin}
+              disabled={isLoading || isDemoFilling}
+              className="w-full py-2.5 px-4 rounded-xl text-sm font-semibold transition-all
+                disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{
+                background: "var(--green)",
+                color: "var(--ink)",
+              }}
+            >
+              {isDemoFilling || isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  Signing in…
+                </span>
+              ) : (
+                "Use demo account"
+              )}
+            </button>
+          </div>
+
           {/* Footer link */}
           <p
-            className="mt-8 text-center text-sm"
+            className="mt-5 text-center text-sm"
             style={{ color: "var(--muted-ink)" }}
           >
             Don&apos;t have an account?{" "}
