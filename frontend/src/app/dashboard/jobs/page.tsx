@@ -47,6 +47,33 @@ const EXPERIENCE_LABELS: Record<string, string> = {
   lead: "Lead",
 };
 
+// ─── Freshness helpers ────────────────────────────────────────────────────────
+
+type FreshnessLevel = "fresh" | "normal" | "aging" | "attention";
+
+function getJobAge(createdAt: string): FreshnessLevel {
+  const diffDays = Math.floor((Date.now() - new Date(createdAt).getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays <= 14) return "fresh";
+  if (diffDays <= 30) return "normal";
+  if (diffDays <= 60) return "aging";
+  return "attention";
+}
+
+// ─── Job Quality Signal ───────────────────────────────────────────────────────
+
+interface QualitySignal {
+  ok: boolean;
+  label: string;
+}
+
+function getJobQualitySignal(job: JobResponse): QualitySignal {
+  if (!job.application_url) return { ok: false, label: "Missing apply link" };
+  if (!job.description || job.description.trim().length < 80) return { ok: false, label: "Short description" };
+  if (!job.salary_range) return { ok: false, label: "No salary listed" };
+  if (!job.location) return { ok: false, label: "No location" };
+  return { ok: true, label: "Complete" };
+}
+
 // ─── App Header ───────────────────────────────────────────────────────────────
 
 function AppHeader({ companyName, onLogout }: { companyName?: string; onLogout: () => void }) {
@@ -96,6 +123,25 @@ function SummaryPill({ label, count, active, onClick, dotColor }: { label: strin
   );
 }
 
+// ─── Freshness Tag ────────────────────────────────────────────────────────────
+
+function FreshnessTag({ level }: { level: FreshnessLevel }) {
+  const cfg = {
+    fresh:     { label: "Fresh",          bg: "rgba(169,203,183,0.18)", color: "#2d6e4f",   border: "rgba(169,203,183,0.5)" },
+    normal:    { label: "Active",          bg: "var(--canvas)",          color: "var(--muted-ink)", border: "var(--border)" },
+    aging:     { label: "Aging",           bg: "rgba(255,147,79,0.10)", color: "#c45e00",  border: "rgba(255,147,79,0.3)" },
+    attention: { label: "Needs attention", bg: "rgba(255,80,50,0.08)",  color: "#c0341a",  border: "rgba(255,80,50,0.2)" },
+  }[level];
+  return (
+    <span
+      className="text-xs font-semibold px-2 py-0.5 rounded-full border whitespace-nowrap"
+      style={{ backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.border }}
+    >
+      {cfg.label}
+    </span>
+  );
+}
+
 // ─── Skeleton rows ────────────────────────────────────────────────────────────
 
 function SkeletonRows() {
@@ -103,9 +149,9 @@ function SkeletonRows() {
     <>
       {Array.from({ length: 6 }).map((_, i) => (
         <tr key={i}>
-          {Array.from({ length: 7 }).map((_, j) => (
+          {Array.from({ length: 9 }).map((_, j) => (
             <td key={j} className="px-4 py-3.5">
-              <div className="h-4 rounded-lg animate-pulse" style={{ background: "rgba(30,35,48,0.07)", width: j === 0 ? "60%" : j === 6 ? "40px" : "80%" }} />
+              <div className="h-4 rounded-lg animate-pulse" style={{ background: "rgba(30,35,48,0.07)", width: j === 0 ? "60%" : j === 8 ? "40px" : "80%" }} />
             </td>
           ))}
         </tr>
@@ -280,7 +326,14 @@ export default function JobsPage() {
     return Array.from(s).sort();
   }, [jobs]);
 
-  const openCount = jobs.filter(j => j.status === "open").length;
+  // ── Freshness health summary (open jobs only) ─────────────────────────────
+  const openJobs = jobs.filter((j) => j.status === "open");
+  const openCount = openJobs.length;
+  const freshCount = openJobs.filter((j) => getJobAge(j.created_at) === "fresh").length;
+  const agingCount = openJobs.filter((j) => getJobAge(j.created_at) === "aging").length;
+  const attentionCount = openJobs.filter((j) => getJobAge(j.created_at) === "attention").length;
+  const showHealthSummary = openJobs.length > 0 && (agingCount > 0 || attentionCount > 0);
+
   const draftCount = jobs.filter(j => j.status === "draft").length;
   const closedCount = jobs.filter(j => j.status === "closed").length;
 
@@ -380,6 +433,29 @@ export default function JobsPage() {
           </div>
         )}
 
+        {/* Health summary — only shown when aging/attention jobs exist */}
+        {!loading && !fetchError && showHealthSummary && (
+          <div
+            className="flex flex-wrap items-center gap-3 mb-5 px-4 py-3 rounded-2xl text-sm"
+            style={{ background: "rgba(255,147,79,0.08)", border: "1px solid rgba(255,147,79,0.25)" }}
+          >
+            <span className="font-semibold shrink-0" style={{ color: "var(--ink)" }}>
+              {openJobs.length} open role{openJobs.length !== 1 ? "s" : ""}
+            </span>
+            <span className="opacity-30">·</span>
+            <span style={{ color: "#2d6e4f" }}>{freshCount} fresh</span>
+            {agingCount > 0 && (
+              <><span className="opacity-30">·</span><span style={{ color: "#c45e00" }}>{agingCount} aging</span></>
+            )}
+            {attentionCount > 0 && (
+              <><span className="opacity-30">·</span><span style={{ color: "#c0341a" }}>{attentionCount} need attention</span></>
+            )}
+            <span className="text-xs ml-auto" style={{ color: "var(--muted-ink)" }}>
+              Consider refreshing older postings to stay competitive.
+            </span>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-3 mb-5 p-3 rounded-2xl" style={{ background: "var(--surface)", border: "1px solid var(--border)" }}>
           <div className="relative flex-1 min-w-48">
@@ -426,13 +502,15 @@ export default function JobsPage() {
                     <th className="px-4 py-3 text-left"><span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-ink)" }}>Policy</span></th>
                     <th className="px-4 py-3 text-left"><span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-ink)" }}>Type</span></th>
                     <SortTH label="Status" sortKey="status" current={sortKey} dir={sortDir} onChange={toggleSort} />
+                    <th className="px-4 py-3 text-left"><span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-ink)" }}>Health</span></th>
+                    <th className="px-4 py-3 text-left"><span className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--muted-ink)" }}>Quality</span></th>
                     <th className="px-4 py-3 w-12" />
                   </tr>
                 </thead>
                 <tbody>
                   {loading ? <SkeletonRows /> : displayed.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-4 py-16 text-center">
+                      <td colSpan={9} className="px-4 py-16 text-center">
                         {jobs.length === 0 ? (
                           <div>
                             <p className="text-base font-semibold mb-1.5" style={{ color: "var(--ink)" }}>No job postings yet</p>
@@ -462,6 +540,25 @@ export default function JobsPage() {
                       <td className="px-4 py-3.5"><span className="text-sm" style={{ color: "var(--muted-ink)" }}>{job.work_policy ? WORK_POLICY_LABELS[job.work_policy] ?? job.work_policy : "—"}</span></td>
                       <td className="px-4 py-3.5"><span className="text-sm" style={{ color: "var(--muted-ink)" }}>{JOB_TYPE_LABELS[job.job_type] ?? job.job_type}</span></td>
                       <td className="px-4 py-3.5"><JobStatusBadge status={job.status} /></td>
+                      <td className="px-4 py-3.5">
+                        {job.status === "open" ? (
+                          <FreshnessTag level={getJobAge(job.created_at)} />
+                        ) : <span className="text-xs" style={{ color: "var(--muted-ink)", opacity: 0.4 }}>—</span>}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {(() => {
+                          const sig = getJobQualitySignal(job);
+                          return sig.ok ? (
+                            <span className="text-xs font-medium flex items-center gap-1" style={{ color: "#2d6e4f" }}>
+                              <span>✓</span> Complete
+                            </span>
+                          ) : (
+                            <span className="text-xs font-medium flex items-center gap-1" style={{ color: "#c45e00" }}>
+                              <span>⚠</span> {sig.label}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td className="px-4 py-3.5">
                         <ActionMenu job={job} companySlug={company?.slug ?? ""} onEdit={() => { setEditJob(job); setPanelOpen(true); }}
                           onDelete={() => setDeleteTarget(job)} onStatusChange={s => handleStatusChange(job, s)} />
