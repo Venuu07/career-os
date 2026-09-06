@@ -361,9 +361,9 @@ export default function BrandingPage() {
             font_family: theme.font_family || null,
             logo_url: theme.logo_url || null,
             social_links: {
-              linkedin: theme.social_links.linkedin || null,
-              instagram: theme.social_links.instagram || null,
-              x: theme.social_links.x || null,
+              linkedin: theme.social_links.linkedin || "",
+              instagram: theme.social_links.instagram || "",
+              x: theme.social_links.x || "",
             },
           },
         }),

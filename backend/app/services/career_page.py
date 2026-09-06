@@ -107,7 +107,16 @@ def update_draft(
             
         # Pydantic models to dicts
         draft.sections_config = [s.model_dump() for s in update_data.sections_config]
-        draft.theme_config = update_data.theme_config.model_dump(exclude_unset=True)
+        raw_theme = update_data.theme_config.model_dump(exclude_unset=True)
+        # Strip null/empty social link values so only real URLs are stored
+        if "social_links" in raw_theme and raw_theme["social_links"] is not None:
+            raw_theme["social_links"] = {
+                k: v for k, v in raw_theme["social_links"].items()
+                if v  # keep only truthy (non-empty, non-null) values
+            }
+            if not raw_theme["social_links"]:
+                raw_theme["social_links"] = None
+        draft.theme_config = raw_theme
         draft.created_by_id = user_id
         
         db.commit()

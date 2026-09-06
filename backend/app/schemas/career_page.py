@@ -24,7 +24,7 @@ class ThemeConfig(BaseModel):
     background_color: str | None = None
     font_family: str | None = None
     logo_url: str | None = None
-    social_links: dict[str, str] | None = None
+    social_links: dict[str, str | None] | None = None
 
 
 class CareerPageDraftUpdate(BaseModel):
