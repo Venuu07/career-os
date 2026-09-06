@@ -1,5 +1,5 @@
 # CareerOS Backend — Python Dependencies
-# Generated: 2026-09-05
+# Updated: 2026-09-06
 # Python: 3.13
 # To install: pip install -r requirements.txt
 
@@ -48,3 +48,6 @@ PyYAML==6.0.3
 # File processing (future: AI resume parsing)
 pypdf==6.17.0
 python-multipart==0.0.32
+
+# AI — Gemini Copy Assistant
+google-genai==1.19.0

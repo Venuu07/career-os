@@ -5,9 +5,8 @@ class Settings(BaseSettings):
     """
     Application settings loaded from environment variables / .env file.
 
-    Only DATABASE_URL is required for the current PostgreSQL foundation phase.
-    Additional settings (SECRET_KEY, JWT config, etc.) will be added when
-    authentication is introduced.
+    Required: DATABASE_URL
+    Optional: GEMINI_API_KEY (AI Copy Assistant), GEMINI_MODEL
     """
 
     model_config = SettingsConfigDict(
@@ -31,6 +30,11 @@ class Settings(BaseSettings):
 
     # CORS: comma-separated list of allowed origins
     ALLOWED_ORIGINS: str = "http://localhost:3000,https://career-os-5txu.vercel.app"
+
+    # AI — Gemini Copy Assistant
+    # Optional: if not set, the /api/ai/* endpoints return 503 gracefully.
+    GEMINI_API_KEY: str = ""
+    GEMINI_MODEL: str = "gemini-3.5-flash-lite"
 
     @property
     def allowed_origins_list(self) -> list[str]:
