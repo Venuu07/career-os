@@ -33,6 +33,7 @@ export function TopBar() {
   const [isPublishDialogOpen, setIsPublishDialogOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [publishedSlug, setPublishedSlug] = useState<string | null>(null);
+  const [publishError, setPublishError] = useState<string | null>(null);
 
   const saveDraft = useCallback(async () => {
     if (state.saveStatus === "saving") return true;
@@ -57,6 +58,7 @@ export function TopBar() {
 
   const handlePublish = async () => {
     setIsPublishing(true);
+    setPublishError(null);
     try {
       if (state.hasUnsavedChanges) {
         const saved = await saveDraft();
@@ -78,7 +80,8 @@ export function TopBar() {
         });
       }
     } catch (err) {
-      console.error("Publish failed", err);
+      const msg = err instanceof Error ? err.message : "Publish failed. Please try again.";
+      setPublishError(msg);
     } finally {
       setIsPublishing(false);
     }
@@ -276,7 +279,13 @@ export function TopBar() {
       </header>
 
       {/* ── Publish Dialog ──────────────────────────────────────────────── */}
-      <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
+      <Dialog
+        open={isPublishDialogOpen}
+        onOpenChange={(open) => {
+          setIsPublishDialogOpen(open);
+          if (!open) { setPublishError(null); setPublishedSlug(null); }
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           {!publishedSlug ? (
             <>
@@ -287,37 +296,49 @@ export function TopBar() {
                   immediately see the updated content.
                 </DialogDescription>
               </DialogHeader>
-              <DialogFooter className="mt-4">
-                <button
-                  type="button"
-                  className="h-9 px-4 rounded-full text-sm font-medium transition-all hover:opacity-70"
-                  style={{
-                    border: "1.5px solid var(--border-subtle)",
-                    color: "var(--muted-ink)",
-                  }}
-                  onClick={() => setIsPublishDialogOpen(false)}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handlePublish}
-                  disabled={isPublishing}
-                  className="h-9 px-4 rounded-full text-sm font-semibold transition-all disabled:opacity-50"
-                  style={{
-                    backgroundColor: "var(--ink)",
-                    color: "var(--canvas)",
-                  }}
-                >
-                  {isPublishing ? (
-                    <span className="flex items-center gap-2">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                      Publishing…
-                    </span>
-                  ) : (
-                    "Publish to Live"
-                  )}
-                </button>
+              <DialogFooter className="mt-4 flex-col gap-2">
+                {publishError && (
+                  <p
+                    className="text-xs text-center px-2 py-2 rounded-xl"
+                    style={{ backgroundColor: "rgba(224,74,0,0.08)", color: "#e04a00" }}
+                  >
+                    {publishError}
+                  </p>
+                )}
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    className="h-9 px-4 rounded-full text-sm font-medium transition-all hover:opacity-70"
+                    style={{
+                      border: "1.5px solid var(--border-subtle)",
+                      color: "var(--muted-ink)",
+                    }}
+                    onClick={() => setIsPublishDialogOpen(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePublish}
+                    disabled={isPublishing}
+                    className="h-9 px-4 rounded-full text-sm font-semibold transition-all disabled:opacity-50"
+                    style={{
+                      backgroundColor: "var(--ink)",
+                      color: "var(--canvas)",
+                    }}
+                  >
+                    {isPublishing ? (
+                      <span className="flex items-center gap-2">
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Publishing…
+                      </span>
+                    ) : publishError ? (
+                      "Retry"
+                    ) : (
+                      "Publish to Live"
+                    )}
+                  </button>
+                </div>
               </DialogFooter>
             </>
           ) : (

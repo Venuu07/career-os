@@ -365,4 +365,23 @@
     border-color: var(--green);
     box-shadow: 0 0 0 3px var(--green-bg);
   }
+
+  /* Prose-like — for rendering multi-line text content (job descriptions, about copy) */
+  .prose-like {
+    line-height: 1.75;
+    color: var(--muted-ink);
+  }
+  .prose-like p,
+  .prose-like li {
+    margin-bottom: 0.75em;
+  }
+  /* Ensure whitespace-pre-wrap paragraphs have consistent spacing */
+  .prose-like + .prose-like {
+    margin-top: 1em;
+  }
+
+  /* iOS safe-area bottom padding for sticky mobile bars */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+  }
 }

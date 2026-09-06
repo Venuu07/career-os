@@ -603,11 +603,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
                 </p>
                 {hasFilters && (
                   <button
-                    onClick={() => {
-                      setQuery("");
-                      setLocationFilter("");
-                      setTypeFilter("");
-                    }}
+                    onClick={clearAll}
                     className="text-xs font-semibold px-4 py-1.5 rounded-full transition-all hover:opacity-80"
                     style={{
                       backgroundColor: "var(--ink)",

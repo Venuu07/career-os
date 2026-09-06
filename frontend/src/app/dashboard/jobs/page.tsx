@@ -362,17 +362,21 @@ export default function JobsPage() {
 
   async function handleFormSubmit(data: JobFormData) {
     const body = { ...data, work_policy: data.work_policy || null, experience_level: data.experience_level || null, salary_range: data.salary_range || null, application_url: data.application_url || null, department: data.department || null, location: data.location || null, description: data.description || null };
-    if (editJob) {
-      const updated = await apiFetch(`/api/jobs/${editJob.id}`, { method: "PATCH", body: JSON.stringify(body) });
-      setJobs(prev => prev.map(j => j.id === updated.id ? updated : j));
-      showToast("Job updated");
-    } else {
-      const created = await apiFetch("/api/jobs", { method: "POST", body: JSON.stringify(body) });
-      setJobs(prev => [created, ...prev]);
-      showToast("Job created");
+    try {
+      if (editJob) {
+        const updated = await apiFetch(`/api/jobs/${editJob.id}`, { method: "PATCH", body: JSON.stringify(body) });
+        setJobs(prev => prev.map(j => j.id === updated.id ? updated : j));
+        showToast("Job updated");
+      } else {
+        const created = await apiFetch("/api/jobs", { method: "POST", body: JSON.stringify(body) });
+        setJobs(prev => [created, ...prev]);
+        showToast("Job created");
+      }
+      setPanelOpen(false);
+      setEditJob(null);
+    } catch (err: unknown) {
+      showToast(err instanceof Error ? err.message : "Failed to save job. Please try again.");
     }
-    setPanelOpen(false);
-    setEditJob(null);
   }
 
   async function handleStatusChange(job: JobResponse, newStatus: JobResponse["status"]) {

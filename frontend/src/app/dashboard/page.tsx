@@ -716,17 +716,22 @@ export default function DashboardPage() {
 
             {/* Public URL */}
             {isPublished && company?.slug && (
-              <div
-                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl mb-5 text-sm font-mono truncate"
+              <a
+                href={`/${company.slug}/careers`}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3.5 py-2.5 rounded-xl mb-5 text-sm font-mono truncate transition-opacity hover:opacity-80"
                 style={{
                   background: "var(--green-bg)",
                   border: "1px solid var(--green)",
                   color: "var(--muted-ink)",
                 }}
+                aria-label={`Open live careers page for ${company.slug}`}
               >
                 <Globe className="h-3.5 w-3.5 shrink-0 text-green-600" />
                 <span className="truncate">/{company.slug}/careers</span>
-              </div>
+                <ExternalLink className="h-3 w-3 shrink-0 ml-auto opacity-50" />
+              </a>
             )}
 
             {/* CTAs */}
