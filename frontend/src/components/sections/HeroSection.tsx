@@ -1,5 +1,6 @@
 import { AmbientRings } from "@/components/AmbientRings";
 import { PreviewProps, InspectorProps } from "./registry";
+import { AIAssistPanel } from "@/components/builder/AIAssistPanel";
 
 // ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
@@ -177,6 +178,30 @@ export function HeroInspector({ data, updateData }: InspectorProps) {
           <option value="right">Right</option>
         </select>
       </Field>
+
+      {/* ── AI Assist ───────────────────────────────────────────────────── */}
+      <div className="pt-2">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+          <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--muted-ink)" }}>AI</span>
+          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+        </div>
+        <AIAssistPanel
+          contentType="hero"
+          context={{
+            headline:    String(data.headline    || ""),
+            description: String(data.subheadline || ""),
+          }}
+          onApply={(result) => {
+            updateData({
+              ...data,
+              ...(result.headline    ? { headline:    result.headline    } : {}),
+              ...(result.description ? { subheadline: result.description } : {}),
+              ...(result.cta         ? { ctaText:     result.cta         } : {}),
+            });
+          }}
+        />
+      </div>
     </div>
   );
 }
