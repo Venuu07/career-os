@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { PublicCareerPageResponse, JobResponse } from "@/lib/types";
-import { MapPin, ArrowLeft, Clock, ExternalLink } from "lucide-react";
+import { MapPin, ArrowLeft, ArrowRight, Clock, ExternalLink } from "lucide-react";
 
 
 interface Props {
@@ -213,8 +213,8 @@ export default async function JobDetailPage({ params }: Props) {
             </span>
           )}
 
-          {/* Desktop Apply CTA in nav */}
-          {job.application_url ? (
+          {/* Desktop Apply CTA in nav — only shown if URL exists */}
+          {job.application_url && (
             <a
               href={job.application_url}
               target="_blank"
@@ -224,10 +224,6 @@ export default async function JobDetailPage({ params }: Props) {
             >
               Apply <ExternalLink className="h-3 w-3" aria-hidden="true" />
             </a>
-          ) : (
-            <span className="hidden sm:inline text-xs" style={{ color: "var(--muted-ink)", opacity: 0.6 }}>
-              No link
-            </span>
           )}
         </div>
       </header>
@@ -442,6 +438,57 @@ export default async function JobDetailPage({ params }: Props) {
             </p>
           )}
         </section>
+
+        {/* ── Related Roles ─────────────────────────────────────────────────── */}
+        {(() => {
+          const otherJobs = page!.open_jobs.filter((j) => String(j.id) !== jobId);
+          // Priority: same dept → other roles. Cap at 3.
+          const sameDept = otherJobs.filter((j) => j.department && j.department === job.department);
+          const rest = otherJobs.filter((j) => !j.department || j.department !== job.department);
+          const related = [...sameDept, ...rest].slice(0, 3);
+          if (related.length === 0) return null;
+          return (
+            <section aria-labelledby="related-heading">
+              <h2 id="related-heading" className="text-base font-bold mb-4" style={{ color: "var(--ink)" }}>
+                More roles you might like
+              </h2>
+              <ul className="space-y-2">
+                {related.map((r) => (
+                  <li key={r.id}>
+                    <Link
+                      href={`/${companySlug}/careers/jobs/${r.id}`}
+                      className="group flex items-center justify-between px-5 py-4 rounded-2xl transition-all"
+                      style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border-subtle)" }}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--green)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--border-subtle)")}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>{r.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: "var(--muted-ink)" }}>
+                          {[r.department, r.location, r.work_policy ? formatWorkPolicy(r.work_policy) : null]
+                            .filter(Boolean)
+                            .join(" · ")}
+                        </p>
+                      </div>
+                      <ArrowRight className="h-4 w-4 shrink-0 ml-4 opacity-0 group-hover:opacity-100 transition-opacity" style={{ color: "var(--ink)" }} />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              {job.department && sameDept.length > 0 && (
+                <div className="mt-4">
+                  <Link
+                    href={`/${companySlug}/careers#jobs`}
+                    className="text-xs font-semibold hover:underline"
+                    style={{ color: "var(--muted-ink)" }}
+                  >
+                    See all {job.department} roles →
+                  </Link>
+                </div>
+              )}
+            </section>
+          );
+        })()}
 
         {/* ── Back link ────────────────────────────────────────────────────── */}
         <div className="pt-2 pb-8">

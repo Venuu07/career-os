@@ -3,8 +3,8 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CareerPageRenderer } from "@/components/sections/CareerPageRenderer";
-import { PublicCareerPageResponse, JobResponse } from "@/lib/types";
-import { Search, MapPin, Briefcase, ArrowRight } from "lucide-react";
+import { PublicCareerPageResponse, JobResponse, WorkPolicy } from "@/lib/types";
+import { Search, MapPin, Briefcase, ArrowRight, Globe2, X } from "lucide-react";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -241,7 +241,7 @@ function PublicJobRow({
       >
         <div className="min-w-0 flex-1">
           <h3
-            className="font-semibold text-base mb-1 truncate"
+            className="font-semibold text-base mb-1"
             style={{ color: "var(--ink)" }}
           >
             {job.title}
@@ -335,6 +335,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
   const [query, setQuery] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [policyFilter, setPolicyFilter] = useState("");
 
   // Derive filter options from actual jobs
   const locations = useMemo(() => {
@@ -349,19 +350,33 @@ export function CareersPageClient({ page, companySlug }: Props) {
     return Array.from(new Set(types)).sort();
   }, [page.open_jobs]);
 
+  const workPolicies = useMemo(() => {
+    const policies = page.open_jobs.map((j) => j.work_policy).filter((p): p is WorkPolicy => p !== null);
+    return Array.from(new Set(policies)).sort();
+  }, [page.open_jobs]);
+
   const filteredJobs = useMemo(() => {
     return page.open_jobs.filter((job) => {
+      const q = query.toLowerCase();
       const matchesQuery =
-        !query || job.title.toLowerCase().includes(query.toLowerCase());
+        !query ||
+        job.title.toLowerCase().includes(q) ||
+        (job.location ?? "").toLowerCase().includes(q) ||
+        (job.department ?? "").toLowerCase().includes(q);
       const matchesLocation =
         !locationFilter || job.location === locationFilter;
       const matchesType = !typeFilter || job.job_type === typeFilter;
-      return matchesQuery && matchesLocation && matchesType;
+      const matchesPolicy = !policyFilter || job.work_policy === (policyFilter as WorkPolicy);
+      return matchesQuery && matchesLocation && matchesType && matchesPolicy;
     });
-  }, [page.open_jobs, query, locationFilter, typeFilter]);
+  }, [page.open_jobs, query, locationFilter, typeFilter, policyFilter]);
+
+  const clearAll = () => { setQuery(""); setLocationFilter(""); setTypeFilter(""); setPolicyFilter(""); };
+
 
   const sections = page.sections_config;
-  const hasFilters = !!(query || locationFilter || typeFilter);
+
+  const hasFilters = !!(query || locationFilter || typeFilter || policyFilter);
   const grouped = useMemo(
     () => groupByDepartment(filteredJobs),
     [filteredJobs]
@@ -399,133 +414,167 @@ export function CareersPageClient({ page, companySlug }: Props) {
           style={{ backgroundColor: "var(--canvas)" }}
         >
           <div className="max-w-4xl mx-auto">
-            {/* Header */}
-            <div className="mb-10">
-              <h2
-                className="text-3xl md:text-4xl font-extrabold tracking-tight"
-                style={{ color: "var(--ink)" }}
-              >
-                {jobsTitle}
-              </h2>
-              {jobsSubtitle && (
-                <p
-                  className="mt-3 text-base md:text-lg"
-                  style={{ color: "var(--muted-ink)" }}
+            {/* Header + live role count */}
+            <div className="mb-10 flex items-end justify-between gap-4 flex-wrap">
+              <div>
+                <h2
+                  className="text-3xl md:text-4xl font-extrabold tracking-tight"
+                  style={{ color: "var(--ink)" }}
                 >
-                  {jobsSubtitle}
-                </p>
-              )}
+                  {jobsTitle}
+                </h2>
+                {jobsSubtitle && (
+                  <p
+                    className="mt-3 text-base md:text-lg"
+                    style={{ color: "var(--muted-ink)" }}
+                  >
+                    {jobsSubtitle}
+                  </p>
+                )}
+              </div>
+              <span
+                className="text-sm font-semibold px-3.5 py-1.5 rounded-full shrink-0"
+                style={{ backgroundColor: "var(--green-bg)", color: "var(--ink)", border: "1px solid var(--green)" }}
+              >
+                {hasFilters
+                  ? `${filteredJobs.length} of ${page.open_jobs.length} role${page.open_jobs.length !== 1 ? "s" : ""}`
+                  : `${page.open_jobs.length} open role${page.open_jobs.length !== 1 ? "s" : ""}`}
+              </span>
             </div>
 
             {/* Search + filters */}
-            <div className="flex flex-col sm:flex-row gap-2.5 mb-8">
+            <div className="mb-8">
               {/* Search */}
-              <div className="relative flex-1">
-                <Search
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                  style={{ color: "var(--muted-ink)" }}
-                />
-                <input
-                  type="search"
-                  placeholder="Search roles…"
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                  aria-label="Search jobs"
-                  className="w-full h-10 pl-10 pr-4 rounded-xl text-sm outline-none transition-all"
-                  style={{
-                    backgroundColor: "var(--surface)",
-                    border: "1.5px solid var(--border-subtle)",
-                    color: "var(--ink)",
-                  }}
-                  onFocus={(e) =>
-                    (e.currentTarget.style.borderColor = "var(--green)")
-                  }
-                  onBlur={(e) =>
-                    (e.currentTarget.style.borderColor = "var(--border-subtle)")
-                  }
-                />
+              <div className="flex flex-col sm:flex-row gap-2.5 mb-3">
+                <div className="relative flex-1">
+                  <Search
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
+                    style={{ color: "var(--muted-ink)" }}
+                  />
+                  <input
+                    type="search"
+                    placeholder="Search by title, location, or department…"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    aria-label="Search jobs"
+                    className="w-full h-10 pl-10 pr-4 rounded-xl text-sm outline-none transition-all"
+                    style={{
+                      backgroundColor: "var(--surface)",
+                      border: "1.5px solid var(--border-subtle)",
+                      color: "var(--ink)",
+                    }}
+                    onFocus={(e) =>
+                      (e.currentTarget.style.borderColor = "var(--green)")
+                    }
+                    onBlur={(e) =>
+                      (e.currentTarget.style.borderColor = "var(--border-subtle)")
+                    }
+                  />
+                </div>
               </div>
 
-              {/* Location filter */}
-              {locations.length > 0 && (
-                <div className="relative">
-                  <MapPin
-                    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                    style={{ color: "var(--muted-ink)" }}
-                  />
-                  <select
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                    aria-label="Filter by location"
-                    className="h-10 pl-9 pr-8 rounded-xl text-sm appearance-none cursor-pointer outline-none transition-all"
-                    style={{
-                      backgroundColor: "var(--surface)",
-                      border: "1.5px solid var(--border-subtle)",
-                      color: "var(--ink)",
-                    }}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.borderColor = "var(--green)")
-                    }
-                    onBlur={(e) =>
-                      (e.currentTarget.style.borderColor = "var(--border-subtle)")
-                    }
-                  >
-                    <option value="">All locations</option>
-                    {locations.map((l) => (
-                      <option key={l} value={l}>
-                        {l}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+              {/* Filter row */}
+              <div className="flex flex-wrap gap-2">
+                {/* Location filter */}
+                {locations.length > 0 && (
+                  <div className="relative">
+                    <MapPin
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none"
+                      style={{ color: "var(--muted-ink)" }}
+                    />
+                    <select
+                      value={locationFilter}
+                      onChange={(e) => setLocationFilter(e.target.value)}
+                      aria-label="Filter by location"
+                      className="h-9 pl-8 pr-7 rounded-xl text-xs font-medium appearance-none cursor-pointer outline-none transition-all"
+                      style={{
+                        backgroundColor: locationFilter ? "var(--ink)" : "var(--surface)",
+                        border: `1.5px solid ${locationFilter ? "var(--ink)" : "var(--border-subtle)"}`,
+                        color: locationFilter ? "var(--canvas)" : "var(--ink)",
+                      }}
+                    >
+                      <option value="">Location</option>
+                      {locations.map((l) => (
+                        <option key={l} value={l}>{l}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
-              {/* Type filter */}
-              {jobTypes.length > 0 && (
-                <div className="relative">
-                  <Briefcase
-                    className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none"
-                    style={{ color: "var(--muted-ink)" }}
-                  />
-                  <select
-                    value={typeFilter}
-                    onChange={(e) => setTypeFilter(e.target.value)}
-                    aria-label="Filter by job type"
-                    className="h-10 pl-9 pr-8 rounded-xl text-sm appearance-none cursor-pointer outline-none transition-all"
-                    style={{
-                      backgroundColor: "var(--surface)",
-                      border: "1.5px solid var(--border-subtle)",
-                      color: "var(--ink)",
-                    }}
-                    onFocus={(e) =>
-                      (e.currentTarget.style.borderColor = "var(--green)")
-                    }
-                    onBlur={(e) =>
-                      (e.currentTarget.style.borderColor = "var(--border-subtle)")
-                    }
+                {/* Work style filter */}
+                {workPolicies.length > 0 && (
+                  <div className="relative">
+                    <Globe2
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none"
+                      style={{ color: policyFilter ? "var(--canvas)" : "var(--muted-ink)" }}
+                    />
+                    <select
+                      value={policyFilter as string}
+                      onChange={(e) => setPolicyFilter(e.target.value)}
+                      aria-label="Filter by work style"
+                      className="h-9 pl-8 pr-7 rounded-xl text-xs font-medium appearance-none cursor-pointer outline-none transition-all"
+                      style={{
+                        backgroundColor: policyFilter ? "var(--ink)" : "var(--surface)",
+                        border: `1.5px solid ${policyFilter ? "var(--ink)" : "var(--border-subtle)"}`,
+                        color: policyFilter ? "var(--canvas)" : "var(--ink)",
+                      }}
+                    >
+                      <option value="">Work style</option>
+                      {workPolicies.map((p) => (
+                        <option key={p} value={p}>{formatWorkPolicy(p as WorkPolicy)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Employment type filter */}
+                {jobTypes.length > 0 && (
+                  <div className="relative">
+                    <Briefcase
+                      className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 pointer-events-none"
+                      style={{ color: typeFilter ? "var(--canvas)" : "var(--muted-ink)" }}
+                    />
+                    <select
+                      value={typeFilter}
+                      onChange={(e) => setTypeFilter(e.target.value)}
+                      aria-label="Filter by employment type"
+                      className="h-9 pl-8 pr-7 rounded-xl text-xs font-medium appearance-none cursor-pointer outline-none transition-all"
+                      style={{
+                        backgroundColor: typeFilter ? "var(--ink)" : "var(--surface)",
+                        border: `1.5px solid ${typeFilter ? "var(--ink)" : "var(--border-subtle)"}`,
+                        color: typeFilter ? "var(--canvas)" : "var(--ink)",
+                      }}
+                    >
+                      <option value="">Employment type</option>
+                      {jobTypes.map((t) => (
+                        <option key={t} value={t}>{formatJobType(t)}</option>
+                      ))}
+                    </select>
+                  </div>
+                )}
+
+                {/* Clear all */}
+                {hasFilters && (
+                  <button
+                    onClick={clearAll}
+                    className="h-9 px-3 rounded-xl text-xs font-semibold flex items-center gap-1 transition-all hover:opacity-70"
+                    style={{ backgroundColor: "var(--canvas)", color: "var(--muted-ink)", border: "1.5px solid var(--border-subtle)" }}
+                    aria-label="Clear all filters"
                   >
-                    <option value="">All types</option>
-                    {jobTypes.map((t) => (
-                      <option key={t} value={t}>
-                        {formatJobType(t)}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              )}
+                    <X className="h-3 w-3" /> Clear
+                  </button>
+                )}
+              </div>
             </div>
 
-            {/* Result count when filters active */}
-            {hasFilters && (
-              <p
-                className="text-xs mb-5"
-                style={{ color: "var(--muted-ink)" }}
-              >
-                {filteredJobs.length === 0
-                  ? "No roles match"
-                  : `${filteredJobs.length} role${filteredJobs.length !== 1 ? "s" : ""} found`}
-              </p>
-            )}
+            {/* Result count — always shown */}
+            <p className="text-xs mb-4" style={{ color: "var(--muted-ink)" }}>
+              {hasFilters
+                ? filteredJobs.length === 0
+                  ? "No roles match your filters"
+                  : `${filteredJobs.length} role${filteredJobs.length !== 1 ? "s" : ""} matching your search`
+                : `${page.open_jobs.length} open role${page.open_jobs.length !== 1 ? "s" : ""}`}
+            </p>
 
             {/* Results */}
             {filteredJobs.length === 0 ? (
