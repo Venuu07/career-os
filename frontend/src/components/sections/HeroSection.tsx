@@ -1,60 +1,117 @@
+import { AmbientRings } from "@/components/AmbientRings";
 import { PreviewProps, InspectorProps } from "./registry";
 
-// ————————————————————————————————————————
-// PREVIEW
-// ————————————————————————————————————————
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
 export function HeroPreview({ data, theme }: PreviewProps) {
-  const bgColor = theme.background_color || "var(--color-surface)";
-  const primaryColor = theme.primary_color || "oklch(0.15 0 0)";
-  const alignment = data.alignment || "center";
-
-  const alignClass =
-    alignment === "left"
-      ? "text-left items-start"
-      : alignment === "right"
-      ? "text-right items-end"
-      : "text-center items-center";
+  const bgColor = theme.background_color || "#F3F3F1";
+  const primaryColor = theme.primary_color || "#1E2330";
+  const headline = data.headline || "Come build with us.";
+  const sub = data.subheadline || "We're a team obsessed with craft. Join us to solve hard problems and ship products people love.";
+  const ctaText = data.ctaText || "Browse open roles";
+  const ctaUrl = String(data.ctaUrl || "#jobs");
+  const eyebrow = data.eyebrow as string | undefined;
 
   return (
-    <div
-      className={`w-full py-28 px-6 md:px-12 flex flex-col ${alignClass} border-b border-zinc-100 dark:border-zinc-900`}
+    <section
+      className="relative w-full overflow-hidden"
       style={{ backgroundColor: bgColor }}
     >
-      <div className={`max-w-4xl w-full ${alignment === "center" ? "mx-auto" : ""}`}>
-        {data.eyebrow && (
-          <p
-            className="text-xs font-semibold tracking-widest uppercase mb-5"
-            style={{ color: primaryColor }}
-          >
-            {data.eyebrow}
-          </p>
-        )}
-        <h1 className="text-4xl md:text-6xl font-bold tracking-tight text-zinc-900 dark:text-white leading-[1.05]">
-          {data.headline || "Join our mission"}
-        </h1>
-        {data.subheadline && (
-          <p className="mt-6 text-xl text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-            {data.subheadline}
-          </p>
-        )}
-        {data.ctaText && (
-          <a
-            href={data.ctaUrl || "#jobs"}
-            className="mt-10 inline-flex items-center gap-2 px-8 py-3.5 rounded-full font-semibold text-white text-sm transition-opacity hover:opacity-90 shadow-md"
-            style={{ backgroundColor: primaryColor }}
-          >
-            {data.ctaText}
-          </a>
-        )}
+      {/* Ambient rings — top-right position */}
+      <div
+        className="absolute -top-32 -right-32 pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <AmbientRings
+          color={primaryColor}
+          ringCount={6}
+          baseRadius={180}
+          gap={70}
+          opacity={0.10}
+        />
       </div>
-    </div>
+      {/* Second ring cluster — bottom-left */}
+      <div
+        className="absolute -bottom-48 -left-48 pointer-events-none select-none"
+        aria-hidden="true"
+      >
+        <AmbientRings
+          color="#E9C0E9"
+          ringCount={4}
+          baseRadius={160}
+          gap={60}
+          opacity={0.13}
+        />
+      </div>
+
+      <div className="relative max-w-5xl mx-auto px-6 md:px-12 py-24 md:py-36">
+        {/* Editorial split: headline left, narrative right on desktop */}
+        <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-end">
+          {/* Left: large headline */}
+          <div>
+            {eyebrow && (
+              <p
+                className="text-xs font-semibold tracking-widest uppercase mb-5"
+                style={{ color: primaryColor, opacity: 0.6 }}
+              >
+                {eyebrow}
+              </p>
+            )}
+            <h1
+              className="text-[2.6rem] md:text-[3.5rem] lg:text-[4rem] font-extrabold leading-[1.02] tracking-tight"
+              style={{ color: primaryColor }}
+            >
+              {headline}
+            </h1>
+          </div>
+
+          {/* Right: sub-copy + CTA */}
+          <div className="flex flex-col items-start gap-7 md:pb-2">
+            <p
+              className="text-base md:text-lg leading-relaxed max-w-md"
+              style={{ color: primaryColor, opacity: 0.65 }}
+            >
+              {sub}
+            </p>
+            {ctaText && (
+              <a
+                href={ctaUrl}
+                className="inline-flex items-center gap-2 px-7 py-3.5 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
+                style={{ backgroundColor: primaryColor, color: bgColor }}
+              >
+                {ctaText}
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M2.5 7h9m-4-4 4 4-4 4"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            )}
+          </div>
+        </div>
+
+        {/* Thin separator line at bottom */}
+        <div
+          className="mt-20 h-px w-full"
+          style={{ backgroundColor: primaryColor, opacity: 0.08 }}
+        />
+      </div>
+    </section>
   );
 }
 
-// ————————————————————————————————————————
-// INSPECTOR
-// ————————————————————————————————————————
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+// PRESERVED EXACTLY — no changes to Inspector bindings
 
 export function HeroInspector({ data, updateData }: InspectorProps) {
   return (
@@ -107,7 +164,12 @@ export function HeroInspector({ data, updateData }: InspectorProps) {
       <Field label="Alignment">
         <select
           value={data.alignment || "center"}
-          onChange={(e) => updateData({ ...data, alignment: e.target.value as "left" | "center" | "right" })}
+          onChange={(e) =>
+            updateData({
+              ...data,
+              alignment: e.target.value as "left" | "center" | "right",
+            })
+          }
           className={inputCls}
         >
           <option value="left">Left</option>
@@ -119,10 +181,18 @@ export function HeroInspector({ data, updateData }: InspectorProps) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
+      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        {label}
+      </label>
       {children}
     </div>
   );

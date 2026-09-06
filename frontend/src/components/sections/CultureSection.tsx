@@ -1,49 +1,83 @@
 import { PreviewProps, InspectorProps } from "./registry";
 
-// ————————————————————————————————————————
-// PREVIEW
-// ————————————————————————————————————————
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
 export function CulturePreview({ data }: PreviewProps) {
   const values: Array<{ icon: string; title: string; description: string }> =
     data.values || [];
+  const eyebrow = data.eyebrow as string | undefined;
 
   return (
-    <div className="w-full py-20 px-6 md:px-12 bg-white dark:bg-zinc-950">
+    <section
+      className="w-full py-20 md:py-28 px-6 md:px-12"
+      style={{ backgroundColor: "var(--canvas)" }}
+    >
       <div className="max-w-5xl mx-auto">
-        <div className="mb-12">
-          {data.eyebrow && (
-            <p className="text-xs font-semibold tracking-widest uppercase text-[oklch(0.6_0.15_250)] mb-3">
-              {data.eyebrow}
-            </p>
-          )}
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {data.title || "Life at the company"}
-          </h2>
+        {/* Header row */}
+        <div className="grid md:grid-cols-5 gap-8 md:gap-16 mb-14 md:mb-16">
+          <div className="md:col-span-2">
+            {eyebrow && (
+              <p
+                className="text-xs font-semibold tracking-widest uppercase mb-4"
+                style={{ color: "var(--lavender)" }}
+              >
+                {eyebrow}
+              </p>
+            )}
+            <h2
+              className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight"
+              style={{ color: "var(--ink)" }}
+            >
+              {(data.title as string) || "How we work"}
+            </h2>
+          </div>
           {data.introduction && (
-            <p className="mt-4 text-lg text-zinc-500 dark:text-zinc-400 max-w-2xl leading-relaxed">
-              {data.introduction}
-            </p>
+            <div className="md:col-span-3 flex items-start pt-1">
+              <p
+                className="text-base md:text-lg leading-relaxed"
+                style={{ color: "var(--muted-ink)" }}
+              >
+                {data.introduction as string}
+              </p>
+            </div>
           )}
         </div>
 
+        {/* Values — editorial blocks, not cards */}
         {values.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-0">
             {values.map((v, i) => (
               <div
                 key={i}
-                className="p-6 rounded-xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50"
+                className="py-8 px-6 md:px-8"
+                style={{
+                  borderTop: "1px solid var(--border-subtle)",
+                  borderRight:
+                    i % 3 < 2 ? "1px solid var(--border-subtle)" : "none",
+                }}
               >
                 {v.icon && (
-                  <div className="text-2xl mb-3" aria-hidden="true">
+                  <div
+                    className="h-10 w-10 rounded-2xl flex items-center justify-center text-xl mb-5"
+                    style={{
+                      backgroundColor: "var(--lavender-bg)",
+                    }}
+                    aria-hidden="true"
+                  >
                     {v.icon}
                   </div>
                 )}
-                <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 mb-2">
+                <h3
+                  className="font-bold text-lg mb-2 tracking-tight"
+                  style={{ color: "var(--ink)" }}
+                >
                   {v.title}
                 </h3>
                 {v.description && (
-                  <p className="text-sm text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: "var(--muted-ink)" }}
+                  >
                     {v.description}
                   </p>
                 )}
@@ -52,13 +86,12 @@ export function CulturePreview({ data }: PreviewProps) {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
-// ————————————————————————————————————————
-// INSPECTOR
-// ————————————————————————————————————————
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+// PRESERVED EXACTLY
 
 export function CultureInspector({ data, updateData }: InspectorProps) {
   const values: Array<{ icon: string; title: string; description: string }> =
@@ -105,7 +138,9 @@ export function CultureInspector({ data, updateData }: InspectorProps) {
       <Field label="Introduction">
         <textarea
           value={data.introduction || ""}
-          onChange={(e) => updateData({ ...data, introduction: e.target.value })}
+          onChange={(e) =>
+            updateData({ ...data, introduction: e.target.value })
+          }
           rows={3}
           placeholder="Describe your culture..."
           className={inputCls}
@@ -172,10 +207,18 @@ export function CultureInspector({ data, updateData }: InspectorProps) {
 }
 
 // Shared helpers
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
+      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        {label}
+      </label>
       {children}
     </div>
   );

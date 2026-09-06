@@ -25,10 +25,13 @@ export function CareerPageRenderer({
   const fontFamilyStyle = theme.font_family ? { fontFamily: theme.font_family } : {};
 
   return (
-    <div className="w-full flex flex-col bg-white dark:bg-zinc-950 min-h-screen" style={fontFamilyStyle}>
+    <div className="w-full flex flex-col min-h-screen" style={{ ...fontFamilyStyle, backgroundColor: "var(--canvas)" }}>
       {visibleSections.length === 0 ? (
-        <div className="flex-1 flex flex-col items-center justify-center p-12 text-zinc-400 gap-3">
-          <div className="text-4xl">□</div>
+        <div
+          className="flex-1 flex flex-col items-center justify-center p-12 gap-3"
+          style={{ color: "var(--muted-ink)" }}
+        >
+          <div className="text-4xl" style={{ opacity: 0.3 }}>□</div>
           <p className="text-sm">No sections to display.</p>
         </div>
       ) : (

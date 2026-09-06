@@ -1,53 +1,61 @@
 import { PreviewProps, InspectorProps } from "./registry";
 
-// ————————————————————————————————————————
-// Helpers
-// ————————————————————————————————————————
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function getEmbedUrl(url: string): string | null {
   if (!url) return null;
-  // YouTube
   const ytMatch = url.match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/
   );
   if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`;
-  // Vimeo
   const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
   if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
   return null;
 }
 
-// ————————————————————————————————————————
-// PREVIEW
-// ————————————————————————————————————————
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
 export function VideoPreview({ data }: PreviewProps) {
-  const embedUrl = getEmbedUrl(data.videoUrl || "");
+  const embedUrl = getEmbedUrl((data.videoUrl as string) || "");
 
   return (
-    <div className="w-full py-20 px-6 md:px-12 bg-white dark:bg-zinc-950">
+    <section
+      className="w-full py-20 md:py-28 px-6 md:px-12"
+      style={{ backgroundColor: "var(--canvas)" }}
+    >
       <div className="max-w-4xl mx-auto">
+        {/* Header */}
         {(data.title || data.description) && (
-          <div className="mb-10 text-center">
+          <div className="mb-10 max-w-2xl">
             {data.title && (
-              <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-                {data.title}
+              <h2
+                className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-3"
+                style={{ color: "var(--ink)" }}
+              >
+                {data.title as string}
               </h2>
             )}
             {data.description && (
-              <p className="mt-3 text-zinc-500 dark:text-zinc-400 max-w-2xl mx-auto">
-                {data.description}
+              <p
+                className="text-base md:text-lg leading-relaxed"
+                style={{ color: "var(--muted-ink)" }}
+              >
+                {data.description as string}
               </p>
             )}
           </div>
         )}
 
+        {/* Media area */}
         {embedUrl ? (
-          <div className="relative w-full rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-lg bg-black">
-            <div className="aspect-video">
+          <div
+            className="relative w-full rounded-3xl overflow-hidden shadow-xl"
+            style={{ border: "1px solid var(--border-subtle)" }}
+          >
+            <div className="aspect-video bg-black">
               <iframe
                 src={embedUrl}
-                title={data.title || "Video"}
+                title={(data.title as string) || "Video"}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
                 className="w-full h-full"
@@ -55,29 +63,54 @@ export function VideoPreview({ data }: PreviewProps) {
             </div>
           </div>
         ) : (
-          <div className="aspect-video rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center">
-            <div className="text-center text-zinc-400">
-              <div className="text-3xl mb-2">▶</div>
-              <p className="text-sm">
-                {data.videoUrl ? "Invalid video URL" : "Add a YouTube or Vimeo URL"}
-              </p>
+          /* Intentional editorial empty state */
+          <div
+            className="aspect-video rounded-3xl flex flex-col items-center justify-center text-center p-8"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1.5px dashed var(--border-subtle)",
+            }}
+          >
+            <div
+              className="h-14 w-14 rounded-2xl flex items-center justify-center text-2xl mb-4"
+              style={{ backgroundColor: "var(--canvas)" }}
+              aria-hidden="true"
+            >
+              ▶
             </div>
+            <p
+              className="font-semibold text-base mb-1"
+              style={{ color: "var(--ink)" }}
+            >
+              {data.videoUrl ? "Invalid video URL" : "Life at the company"}
+            </p>
+            <p
+              className="text-sm max-w-xs"
+              style={{ color: "var(--muted-ink)" }}
+            >
+              {data.videoUrl
+                ? "Please enter a valid YouTube or Vimeo URL."
+                : "Add a YouTube or Vimeo URL to show your team and culture."}
+            </p>
           </div>
         )}
 
+        {/* Caption */}
         {data.caption && (
-          <p className="mt-4 text-center text-sm text-zinc-400 dark:text-zinc-500">
-            {data.caption}
+          <p
+            className="mt-4 text-center text-sm"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            {data.caption as string}
           </p>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
-// ————————————————————————————————————————
-// INSPECTOR
-// ————————————————————————————————————————
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+// PRESERVED EXACTLY
 
 export function VideoInspector({ data, updateData }: InspectorProps) {
   return (
@@ -94,7 +127,9 @@ export function VideoInspector({ data, updateData }: InspectorProps) {
       <Field label="Description (optional)">
         <textarea
           value={data.description || ""}
-          onChange={(e) => updateData({ ...data, description: e.target.value })}
+          onChange={(e) =>
+            updateData({ ...data, description: e.target.value })
+          }
           rows={2}
           placeholder="A short intro to the video..."
           className={inputCls}
@@ -125,10 +160,18 @@ export function VideoInspector({ data, updateData }: InspectorProps) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
+      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        {label}
+      </label>
       {children}
     </div>
   );

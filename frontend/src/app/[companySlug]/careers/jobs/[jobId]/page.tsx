@@ -3,17 +3,22 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { API_BASE_URL } from "@/lib/api";
 import { PublicCareerPageResponse, JobResponse } from "@/lib/types";
-import { MapPin, Briefcase, ArrowLeft, ChevronRight } from "lucide-react";
+import { MapPin, Briefcase, ArrowLeft } from "lucide-react";
 
 interface Props {
   params: Promise<{ companySlug: string; jobId: string }>;
 }
 
-async function getPublicPage(slug: string): Promise<PublicCareerPageResponse | null> {
+// ─── Data fetching ─────────────────────────────────────────────────────────────
+
+async function getPublicPage(
+  slug: string
+): Promise<PublicCareerPageResponse | null> {
   try {
-    const res = await fetch(`${API_BASE_URL}/api/public/companies/${slug}/careers-page`, {
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `${API_BASE_URL}/api/public/companies/${slug}/careers-page`,
+      { next: { revalidate: 60 } }
+    );
     if (!res.ok) return null;
     return res.json();
   } catch {
@@ -21,9 +26,24 @@ async function getPublicPage(slug: string): Promise<PublicCareerPageResponse | n
   }
 }
 
-function findJob(page: PublicCareerPageResponse, jobId: string): JobResponse | null {
+function findJob(
+  page: PublicCareerPageResponse,
+  jobId: string
+): JobResponse | null {
   return page.open_jobs.find((j) => String(j.id) === jobId) ?? null;
 }
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatJobType(type: string): string {
+  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ─── Metadata ─────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { companySlug, jobId } = await params;
@@ -36,8 +56,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description: job.description
       ? job.description.slice(0, 160)
       : `Join ${page.company_name} as ${job.title}.`,
+    openGraph: {
+      title: `${job.title} — ${page.company_name}`,
+      description: job.description
+        ? job.description.slice(0, 160)
+        : `Join ${page.company_name} as ${job.title}.`,
+      type: "website",
+    },
   };
 }
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function JobDetailPage({ params }: Props) {
   const { companySlug, jobId } = await params;
@@ -47,130 +76,245 @@ export default async function JobDetailPage({ params }: Props) {
   const job = findJob(page!, jobId);
   if (!job) notFound();
 
-  const primaryColor = page!.theme_config?.primary_color || "#18181b";
-  const primaryMeta = [
-    { icon: MapPin, label: job.location, condition: !!job.location },
-    { icon: Briefcase, label: formatJobType(job.job_type), condition: true },
-  ].filter((m) => m.condition && m.label);
+  const theme = page!.theme_config;
 
-  const secondaryMeta = [
-    { label: job.department, condition: !!job.department },
-    {
-      label: job.experience_level ? capitalize(job.experience_level) + " level" : null,
-      condition: !!job.experience_level,
-    },
-  ].filter((m) => m.condition && m.label);
+  // Build metadata chips
+  const chips = [
+    job.location ? { icon: MapPin, label: job.location } : null,
+    job.job_type ? { icon: Briefcase, label: formatJobType(job.job_type) } : null,
+  ].filter(Boolean) as { icon: React.ElementType; label: string }[];
+
+  const pills = [
+    job.department,
+    job.experience_level
+      ? capitalize(job.experience_level) + " level"
+      : null,
+  ].filter(Boolean) as string[];
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950">
-      {/* Nav */}
+    <div
+      className="min-h-screen"
+      style={{ backgroundColor: "var(--canvas)" }}
+    >
+      {/* ── Sticky Nav ─────────────────────────────────────────────────────── */}
       <header
-        className="sticky top-0 z-20 border-b border-zinc-100 dark:border-zinc-900 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm"
+        className="sticky top-0 z-30"
+        style={{
+          backgroundColor: "rgba(243,243,241,0.92)",
+          backdropFilter: "blur(12px)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
       >
         <div className="max-w-3xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link
-            href={`/${companySlug}/careers`}
-            className="flex items-center gap-2 text-sm text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            href={`/${companySlug}/careers#jobs`}
+            className="flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-60"
+            style={{ color: "var(--muted-ink)" }}
           >
             <ArrowLeft className="h-4 w-4" />
-            {page!.company_name} Careers
+            Back to open roles
           </Link>
-          {page!.theme_config?.logo_url && (
+
+          {theme?.logo_url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={page!.theme_config.logo_url}
+              src={theme.logo_url}
               alt={page!.company_name}
               className="h-6 object-contain"
             />
+          ) : (
+            <span
+              className="text-sm font-bold"
+              style={{ color: "var(--ink)" }}
+            >
+              {page!.company_name}
+            </span>
           )}
         </div>
       </header>
 
-      {/* Hero */}
+      {/* ── Job Header ─────────────────────────────────────────────────────── */}
       <div
-        className="py-24 md:py-32 px-6 border-b border-zinc-100 dark:border-zinc-900"
+        className="py-16 md:py-24 px-6"
+        style={{
+          backgroundColor: "#FFFFFF",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
       >
         <div className="max-w-3xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50 mb-6">
+          {/* Department breadcrumb */}
+          {job.department && (
+            <p
+              className="text-xs font-semibold tracking-widest uppercase mb-5"
+              style={{ color: "var(--green)" }}
+            >
+              {job.department}
+            </p>
+          )}
+
+          {/* Title */}
+          <h1
+            className="text-4xl sm:text-5xl font-extrabold tracking-tight leading-tight mb-7"
+            style={{ color: "var(--ink)" }}
+          >
             {job.title}
           </h1>
-          
-          <div className="flex flex-col gap-3">
-            {primaryMeta.length > 0 && (
-              <div className="flex flex-wrap items-center gap-4">
-                {primaryMeta.map(({ icon: Icon, label }, i) => (
-                  <div key={i} className="flex items-center gap-1.5 text-base text-zinc-600 dark:text-zinc-300">
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-            
-            {secondaryMeta.length > 0 && (
-              <div className="flex flex-wrap items-center gap-4 text-sm text-zinc-500 dark:text-zinc-400">
-                {secondaryMeta.map(({ label }, i) => (
-                  <div key={i} className="flex items-center">
-                    {i > 0 && <span className="mr-4 text-zinc-300 dark:text-zinc-700">·</span>}
-                    <span>{label}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
 
-          <div className="mt-8">
-            <a
-              href="#apply"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm text-white transition-opacity hover:opacity-90"
-              style={{ backgroundColor: primaryColor }}
+          {/* Location + type chips */}
+          {chips.length > 0 && (
+            <div className="flex flex-wrap items-center gap-3 mb-5">
+              {chips.map(({ icon: Icon, label }, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 text-sm font-medium px-3 py-1.5 rounded-full"
+                  style={{
+                    backgroundColor: "var(--canvas)",
+                    border: "1px solid var(--border-subtle)",
+                    color: "var(--ink)",
+                  }}
+                >
+                  <Icon className="h-3.5 w-3.5 shrink-0" />
+                  {label}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Experience + secondary pills */}
+          {pills.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 mb-8">
+              {pills.map((pill, i) => (
+                <span
+                  key={i}
+                  className="text-xs font-medium px-3 py-1 rounded-full"
+                  style={{
+                    backgroundColor: "var(--green-bg)",
+                    color: "var(--ink)",
+                    border: "1px solid var(--green)",
+                  }}
+                >
+                  {pill}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* Primary scroll CTA */}
+          <a
+            href="#apply"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
+            style={{ backgroundColor: "var(--ink)", color: "var(--canvas)" }}
+          >
+            Apply for this role
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              aria-hidden="true"
             >
-              Apply for this role <ChevronRight className="h-4 w-4" />
-            </a>
-          </div>
+              <path
+                d="M7 2.5v9m-4-4 4 4 4-4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </a>
         </div>
       </div>
 
-      {/* Description */}
-      <div className="max-w-3xl mx-auto px-6 py-12">
+      {/* ── Job Body ───────────────────────────────────────────────────────── */}
+      <div className="max-w-3xl mx-auto px-6 py-14 space-y-10">
+        {/* Description */}
         {job.description ? (
-          <div className="prose prose-zinc dark:prose-invert max-w-none">
-            <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-4">
-              About this role
+          <div>
+            <h2
+              className="text-xl font-bold mb-5"
+              style={{ color: "var(--ink)" }}
+            >
+              About the role
             </h2>
-            <div className="text-zinc-600 dark:text-zinc-400 leading-relaxed whitespace-pre-wrap">
+            <div
+              className="text-base leading-relaxed whitespace-pre-wrap"
+              style={{ color: "var(--muted-ink)" }}
+            >
               {job.description}
             </div>
           </div>
         ) : (
-          <p className="text-zinc-400 italic">No additional description provided.</p>
+          <p
+            className="text-sm italic"
+            style={{ color: "var(--muted-ink)", opacity: 0.6 }}
+          >
+            No additional description provided.
+          </p>
         )}
 
-        {/* Apply CTA */}
-        <div id="apply" className="mt-12 p-6 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 text-center">
-          <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+        {/* Divider */}
+        <div
+          className="h-px w-full"
+          style={{ backgroundColor: "var(--border-subtle)" }}
+        />
+
+        {/* Apply CTA block */}
+        <div
+          id="apply"
+          className="rounded-3xl p-8 text-center"
+          style={{
+            backgroundColor: "var(--surface)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          <h2
+            className="text-xl font-bold mb-2"
+            style={{ color: "var(--ink)" }}
+          >
             Interested in this role?
           </h2>
-          <p className="text-sm text-zinc-500 mb-5">
-            Send an application to {page!.company_name} and tell us about yourself.
+          <p className="text-sm mb-6" style={{ color: "var(--muted-ink)" }}>
+            Send an application to {page!.company_name} and tell us about
+            yourself.
           </p>
           <a
-            href={`mailto:careers@${companySlug}.com?subject=Application: ${encodeURIComponent(job.title)}`}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-lg font-semibold text-sm text-white"
-            style={{ backgroundColor: primaryColor }}
+            href={`mailto:careers@${companySlug}.com?subject=Application: ${encodeURIComponent(
+              job.title
+            )}`}
+            className="inline-flex items-center gap-2 px-7 py-3 rounded-full font-semibold text-sm transition-opacity hover:opacity-80"
+            style={{ backgroundColor: "var(--ink)", color: "var(--canvas)" }}
           >
-            Apply Now <ChevronRight className="h-4 w-4" />
+            Apply via email
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M2.5 7h9m-4-4 4 4-4 4"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
           </a>
+        </div>
+
+        {/* Back link — bottom */}
+        <div className="pt-2 pb-8">
+          <Link
+            href={`/${companySlug}/careers#jobs`}
+            className="inline-flex items-center gap-2 text-sm font-medium transition-opacity hover:opacity-60"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            <ArrowLeft className="h-4 w-4" />
+            All open roles at {page!.company_name}
+          </Link>
         </div>
       </div>
     </div>
   );
-}
-
-function formatJobType(type: string): string {
-  return type.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
-function capitalize(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1);
 }

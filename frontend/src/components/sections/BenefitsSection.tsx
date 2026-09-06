@@ -1,75 +1,93 @@
 import { PreviewProps, InspectorProps } from "./registry";
 
-// ————————————————————————————————————————
-// PREVIEW
-// ————————————————————————————————————————
+// ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
-export function BenefitsPreview({ data, theme }: PreviewProps) {
+export function BenefitsPreview({ data }: PreviewProps) {
   const items: Array<{ icon: string; title: string; description: string }> =
     data.items || [];
-  const primaryColor = theme.primary_color || "oklch(0.6 0.15 250)";
+  const eyebrow = data.eyebrow as string | undefined;
 
   return (
-    <div className="w-full py-20 px-6 md:px-12 bg-zinc-50 dark:bg-zinc-900/30">
+    <section
+      className="w-full py-20 md:py-28 px-6 md:px-12"
+      style={{ backgroundColor: "#FFFFFF" }}
+    >
       <div className="max-w-5xl mx-auto">
-        <div className="mb-12 text-center">
-          {data.eyebrow && (
+        {/* Header — left aligned, sparse */}
+        <div className="mb-14 md:mb-16 max-w-2xl">
+          {eyebrow && (
             <p
-              className="text-xs font-semibold tracking-widest uppercase mb-3"
-              style={{ color: primaryColor }}
+              className="text-xs font-semibold tracking-widest uppercase mb-4"
+              style={{ color: "var(--orange)" }}
             >
-              {data.eyebrow}
+              {eyebrow}
             </p>
           )}
-          <h2 className="text-3xl font-bold tracking-tight text-zinc-900 dark:text-zinc-50">
-            {data.title || "Benefits & Perks"}
+          <h2
+            className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight"
+            style={{ color: "var(--ink)" }}
+          >
+            {(data.title as string) || "Benefits & Perks"}
           </h2>
           {data.subtitle && (
-            <p className="mt-3 text-zinc-500 dark:text-zinc-400 max-w-xl mx-auto">
-              {data.subtitle}
+            <p
+              className="mt-3 text-base md:text-lg leading-relaxed"
+              style={{ color: "var(--muted-ink)" }}
+            >
+              {data.subtitle as string}
             </p>
           )}
         </div>
 
+        {/* Benefits — editorial grid, sparse typography, no heavy cards */}
         {items.length > 0 ? (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
             {items.map((item, i) => (
-              <div
-                key={i}
-                className="flex gap-4 p-5 rounded-xl bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800"
-              >
-                <div
-                  className="h-9 w-9 rounded-lg flex items-center justify-center text-lg shrink-0"
-                  style={{ backgroundColor: `${primaryColor}15` }}
+              <div key={i} className="flex flex-col gap-2">
+                {item.icon && (
+                  <div
+                    className="h-9 w-9 rounded-2xl flex items-center justify-center text-lg mb-1"
+                    style={{ backgroundColor: "var(--orange-bg)" }}
+                    aria-hidden="true"
+                  >
+                    {item.icon}
+                  </div>
+                )}
+                <h3
+                  className="font-bold text-base tracking-tight"
+                  style={{ color: "var(--ink)" }}
                 >
-                  <span aria-hidden="true">{item.icon || "✦"}</span>
-                </div>
-                <div>
-                  <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-sm">
-                    {item.title}
-                  </h3>
-                  {item.description && (
-                    <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                      {item.description}
-                    </p>
-                  )}
-                </div>
+                  {item.title}
+                </h3>
+                {item.description && (
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{ color: "var(--muted-ink)" }}
+                  >
+                    {item.description}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 text-zinc-400 text-sm border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl">
+          <div
+            className="text-center py-12 rounded-2xl text-sm"
+            style={{
+              border: "1.5px dashed var(--border-subtle)",
+              color: "var(--muted-ink)",
+            }}
+          >
             Add your benefits and perks
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }
 
-// ————————————————————————————————————————
-// INSPECTOR
-// ————————————————————————————————————————
+// ─── INSPECTOR ────────────────────────────────────────────────────────────────
+// PRESERVED EXACTLY
 
 export function BenefitsInspector({ data, updateData }: InspectorProps) {
   const items: Array<{ icon: string; title: string; description: string }> =
@@ -125,7 +143,9 @@ export function BenefitsInspector({ data, updateData }: InspectorProps) {
 
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Benefits</span>
+          <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+            Benefits
+          </span>
           <button
             type="button"
             onClick={addItem}
@@ -168,7 +188,9 @@ export function BenefitsInspector({ data, updateData }: InspectorProps) {
               <input
                 type="text"
                 value={item.description}
-                onChange={(e) => updateItem(i, "description", e.target.value)}
+                onChange={(e) =>
+                  updateItem(i, "description", e.target.value)
+                }
                 placeholder="Short description..."
                 className={inputCls}
               />
@@ -180,10 +202,18 @@ export function BenefitsInspector({ data, updateData }: InspectorProps) {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">{label}</label>
+      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+        {label}
+      </label>
       {children}
     </div>
   );
