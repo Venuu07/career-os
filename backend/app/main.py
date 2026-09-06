@@ -8,6 +8,10 @@ Current state: PostgreSQL foundation phase.
 - /health/db   → database connectivity check
 """
 
+#cd backend
+#.venv\Scripts\Activate.ps1
+#uvicorn app.main:app --reload --port 8000
+
 import logging
 
 from contextlib import asynccontextmanager
