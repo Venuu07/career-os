@@ -16,7 +16,7 @@ async function getPublicPage(slug: string): Promise<PublicCareerPageResponse | n
   try {
     const res = await fetch(
       `${API_BASE_URL}/api/public/companies/${slug}/careers-page`,
-      { next: { revalidate: 60 } }
+      { next: { revalidate: 10 } }
     );
     if (!res.ok) return null;
     return res.json();

@@ -178,29 +178,58 @@ def publish_page(db: Session, company_id: UUID, user_id: UUID) -> CareersPage:
 def get_public_page(db: Session, company_slug: str) -> dict:
     """
     Fetch the public view of a Careers Page and its open jobs.
+
+    Publication semantics:
+    - Jobs are a company-level resource. An OPEN job is visible as soon as it
+      is created — regardless of whether the recruiter has explicitly published
+      the builder page version.
+    - If a published CareerPageVersion exists, its sections_config and
+      theme_config are used (stable, recruiter-approved snapshot).
+    - If NO published version exists yet (page was never published from the
+      builder), we fall back to the current DRAFT version so the page is still
+      accessible. This lets recruiters add jobs immediately without needing to
+      go through the builder publish flow first.
+    - If neither a published nor draft version exists (edge case), we use empty
+      defaults so the page is still reachable.
+    - A 404 is only returned if the company itself does not exist.
     """
     company = db.scalar(select(Company).where(Company.slug == company_slug))
     if not company:
         raise HTTPException(status_code=404, detail="Company not found")
-        
+
     page = db.scalar(select(CareersPage).where(CareersPage.company_id == company.id))
-    if not page or not page.published_version_id:
-        raise HTTPException(status_code=404, detail="Careers page not published")
-        
-    published_version = page.published_version
-    
+    if not page:
+        raise HTTPException(status_code=404, detail="Careers page not found")
+
+    # Resolve the best available version: published → draft → empty defaults
+    active_version = None
+    if page.published_version_id:
+        active_version = page.published_version
+    if not active_version:
+        # Fall back to draft so the page is reachable before first publish
+        active_version = db.scalar(
+            select(CareerPageVersion)
+            .where(CareerPageVersion.career_page_id == page.id)
+            .where(CareerPageVersion.status == VersionStatus.DRAFT)
+        )
+
+    sections_config = active_version.sections_config if active_version else DEFAULT_SECTIONS
+    theme_config = active_version.theme_config if active_version else {}
+
     open_jobs = db.scalars(
         select(Job)
         .where(Job.company_id == company.id)
         .where(Job.status == JobStatus.OPEN)
+        .order_by(Job.created_at.desc())
     ).all()
-    
+
     return {
         "company_name": company.name,
         "slug": company.slug,
         "title": page.title,
         "meta_description": page.meta_description,
-        "theme_config": published_version.theme_config,
-        "sections_config": published_version.sections_config,
-        "open_jobs": open_jobs
+        "theme_config": theme_config,
+        "sections_config": sections_config,
+        "open_jobs": open_jobs,
     }
+
