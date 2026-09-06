@@ -71,6 +71,13 @@ function AppHeader({
         {/* Right actions */}
         <div className="flex items-center gap-1">
           <Link
+            href="/dashboard/jobs"
+            className="btn-pill text-xs px-3 py-1.5 hidden sm:inline-flex"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            <Briefcase className="h-3 w-3" /> Jobs
+          </Link>
+          <Link
             href="/dashboard/builder"
             className="btn-pill btn-pill-primary text-xs px-3 py-1.5 hidden sm:inline-flex"
           >
