@@ -1,55 +1,103 @@
 import { PreviewProps, InspectorProps } from "./registry";
 
+// ─── Type helpers ─────────────────────────────────────────────────────────────
+
+type ImagePosition = "left" | "right";
+type ImageWidth    = "compact" | "balanced" | "large";
+type ImageValign   = "top" | "center";
+
+// Map imageWidth → Tailwind grid column split (text-cols / image-cols)
+function widthCols(w: ImageWidth): { text: string; img: string } {
+  switch (w) {
+    case "compact":  return { text: "md:col-span-3", img: "md:col-span-2" };
+    case "large":    return { text: "md:col-span-2", img: "md:col-span-3" };
+    case "balanced":
+    default:         return { text: "md:col-span-2", img: "md:col-span-2" };
+  }
+}
+
 // ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
 export function AboutPreview({ data }: PreviewProps) {
-  const layout = data.layout || "text-only";
-  const title = (data.title as string) || "Our Story";
-  const content = (data.content as string) || "Tell your company story here.";
-  const eyebrow = data.eyebrow as string | undefined;
+  const layout       = (data.layout        as string)        || "text-only";
+  const title        = (data.title         as string)        || "Our Story";
+  const content      = (data.content       as string)        || "Tell your company story here.";
+  const eyebrow      = data.eyebrow        as string | undefined;
+  const imageUrl     = data.imageUrl       as string | undefined;
+  const imageAlt     = (data.imageAlt      as string)        || "About us";
+  const position     = (data.imagePosition as ImagePosition) || "right";
+  const width        = (data.imageWidth    as ImageWidth)    || "balanced";
+  const valign       = (data.imageValign   as ImageValign)   || "top";
+
+  const { text: textCols, img: imgCols } = widthCols(width);
+  const valignClass = valign === "center" ? "items-center" : "items-start";
+  const isImageLayout = layout === "text-image" && imageUrl;
+
+  const TextBlock = (
+    <div>
+      {eyebrow && (
+        <p
+          className="text-xs font-semibold tracking-widest uppercase mb-4"
+          style={{ color: "var(--green)" }}
+        >
+          {eyebrow}
+        </p>
+      )}
+      <h2
+        className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-6"
+        style={{ color: "var(--ink)" }}
+      >
+        {title}
+      </h2>
+      <div
+        className="text-base leading-relaxed whitespace-pre-wrap"
+        style={{ color: "var(--muted-ink)" }}
+      >
+        {content}
+      </div>
+    </div>
+  );
+
+  const ImageBlock = imageUrl ? (
+    <div
+      className="rounded-3xl overflow-hidden"
+      style={{ border: "1px solid var(--border-subtle)" }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imageUrl}
+        alt={imageAlt}
+        className="w-full h-72 md:h-80 object-cover"
+      />
+    </div>
+  ) : null;
 
   return (
-    <section className="w-full py-20 md:py-28 px-6 md:px-12" style={{ backgroundColor: "#FFFFFF" }}>
+    <section
+      id="about"
+      className="w-full py-20 md:py-28 px-6 md:px-12"
+      style={{ backgroundColor: "#FFFFFF" }}
+    >
       <div className="max-w-5xl mx-auto">
-        {layout === "text-image" && data.imageUrl ? (
-          /* Split: strong headline left, image right */
-          <div className="grid md:grid-cols-2 gap-12 md:gap-16 items-start">
-            <div>
-              {eyebrow && (
-                <p
-                  className="text-xs font-semibold tracking-widest uppercase mb-4"
-                  style={{ color: "var(--green)" }}
-                >
-                  {eyebrow}
-                </p>
-              )}
-              <h2
-                className="text-3xl md:text-4xl font-extrabold tracking-tight leading-tight mb-6"
-                style={{ color: "var(--ink)" }}
-              >
-                {title}
-              </h2>
-              <div
-                className="text-base leading-relaxed whitespace-pre-wrap"
-                style={{ color: "var(--muted-ink)" }}
-              >
-                {content}
-              </div>
-            </div>
-            <div
-              className="rounded-3xl overflow-hidden"
-              style={{ border: "1px solid var(--border-subtle)" }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={data.imageUrl as string}
-                alt={(data.imageAlt as string) || "About us"}
-                className="w-full h-72 md:h-80 object-cover"
-              />
-            </div>
+        {isImageLayout ? (
+          /* Text + Image split — position / width configurable */
+          <div
+            className={`grid md:grid-cols-4 gap-12 md:gap-16 ${valignClass}`}
+          >
+            {position === "right" ? (
+              <>
+                <div className={textCols}>{TextBlock}</div>
+                <div className={imgCols}>{ImageBlock}</div>
+              </>
+            ) : (
+              <>
+                <div className={imgCols}>{ImageBlock}</div>
+                <div className={textCols}>{TextBlock}</div>
+              </>
+            )}
           </div>
         ) : (
-          /* Text-only: offset layout — eyebrow+title left, content right */
+          /* Text-only: offset 2+3 column editorial layout */
           <div className="grid md:grid-cols-5 gap-10 md:gap-16">
             <div className="md:col-span-2">
               {eyebrow && (
@@ -83,11 +131,13 @@ export function AboutPreview({ data }: PreviewProps) {
 }
 
 // ─── INSPECTOR ────────────────────────────────────────────────────────────────
-// PRESERVED EXACTLY
 
 export function AboutInspector({ data, updateData }: InspectorProps) {
+  const isImageLayout = data.layout === "text-image";
+
   return (
     <div className="space-y-4">
+      {/* ── Core content ──────────────────────────────────────────────── */}
       <Field label="Eyebrow text (optional)">
         <input
           type="text"
@@ -115,6 +165,8 @@ export function AboutInspector({ data, updateData }: InspectorProps) {
           className={inputCls}
         />
       </Field>
+
+      {/* ── Layout ───────────────────────────────────────────────────── */}
       <Field label="Layout">
         <select
           value={data.layout || "text-only"}
@@ -130,8 +182,12 @@ export function AboutInspector({ data, updateData }: InspectorProps) {
           <option value="text-image">Text + Image</option>
         </select>
       </Field>
-      {data.layout === "text-image" && (
+
+      {/* ── Media config — only shown when text-image ─────────────── */}
+      {isImageLayout && (
         <>
+          <SectionDivider label="Media" />
+
           <Field label="Image URL">
             <input
               type="url"
@@ -143,7 +199,8 @@ export function AboutInspector({ data, updateData }: InspectorProps) {
               className={inputCls}
             />
           </Field>
-          <Field label="Image alt text">
+
+          <Field label="Alt text">
             <input
               type="text"
               value={data.imageAlt || ""}
@@ -154,11 +211,56 @@ export function AboutInspector({ data, updateData }: InspectorProps) {
               className={inputCls}
             />
           </Field>
+
+          {/* Position — segmented button group */}
+          <Field label="Image position">
+            <SegmentedControl
+              value={(data.imagePosition as string) || "right"}
+              options={[
+                { label: "Left", value: "left" },
+                { label: "Right", value: "right" },
+              ]}
+              onChange={(v) =>
+                updateData({ ...data, imagePosition: v as "left" | "right" })
+              }
+            />
+          </Field>
+
+          {/* Width */}
+          <Field label="Image width">
+            <SegmentedControl
+              value={(data.imageWidth as string) || "balanced"}
+              options={[
+                { label: "Compact", value: "compact" },
+                { label: "Balanced", value: "balanced" },
+                { label: "Large", value: "large" },
+              ]}
+              onChange={(v) =>
+                updateData({ ...data, imageWidth: v as "compact" | "balanced" | "large" })
+              }
+            />
+          </Field>
+
+          {/* Vertical alignment */}
+          <Field label="Vertical alignment">
+            <SegmentedControl
+              value={(data.imageValign as string) || "top"}
+              options={[
+                { label: "Top", value: "top" },
+                { label: "Center", value: "center" },
+              ]}
+              onChange={(v) =>
+                updateData({ ...data, imageValign: v as "top" | "center" })
+              }
+            />
+          </Field>
         </>
       )}
     </div>
   );
 }
+
+// ─── Shared primitives ────────────────────────────────────────────────────────
 
 function Field({
   label,
@@ -173,6 +275,53 @@ function Field({
         {label}
       </label>
       {children}
+    </div>
+  );
+}
+
+function SectionDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 pt-1">
+      <span className="text-xs font-bold tracking-widest uppercase" style={{ color: "var(--muted-ink)" }}>
+        {label}
+      </span>
+      <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+    </div>
+  );
+}
+
+function SegmentedControl({
+  value,
+  options,
+  onChange,
+}: {
+  value: string;
+  options: { label: string; value: string }[];
+  onChange: (v: string) => void;
+}) {
+  return (
+    <div
+      className="flex p-0.5 rounded-xl gap-0.5"
+      style={{
+        backgroundColor: "var(--canvas)",
+        border: "1px solid var(--border-subtle)",
+      }}
+    >
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all"
+          style={{
+            backgroundColor: value === opt.value ? "var(--surface)" : "transparent",
+            color: value === opt.value ? "var(--ink)" : "var(--muted-ink)",
+            boxShadow: value === opt.value ? "0 1px 3px rgba(30,35,48,0.08)" : "none",
+          }}
+        >
+          {opt.label}
+        </button>
+      ))}
     </div>
   );
 }

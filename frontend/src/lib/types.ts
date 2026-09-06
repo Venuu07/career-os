@@ -19,6 +19,9 @@ export interface BaseSectionData {
   layout?: "text-only" | "text-image";
   imageUrl?: string;
   imageAlt?: string;
+  imagePosition?: "left" | "right";
+  imageWidth?: "compact" | "balanced" | "large";
+  imageValign?: "top" | "center";
   introduction?: string;
   values?: Array<{ icon: string; title: string; description: string }>;
   items?: Array<{ icon: string; title: string; description: string }>;

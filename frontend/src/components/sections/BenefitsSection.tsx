@@ -9,6 +9,7 @@ export function BenefitsPreview({ data }: PreviewProps) {
 
   return (
     <section
+      id="benefits"
       className="w-full py-20 md:py-28 px-6 md:px-12"
       style={{ backgroundColor: "#FFFFFF" }}
     >

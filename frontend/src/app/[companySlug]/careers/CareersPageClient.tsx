@@ -47,59 +47,147 @@ function PublicNav({
   logoUrl,
   openRoleCount,
   slug,
+  sections,
 }: {
   companyName: string;
   logoUrl?: string;
   openRoleCount: number;
   slug: string;
+  sections: { type: string; visible: boolean }[];
 }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Only surface nav links for sections that are actually visible on the page
+  const hasAbout    = sections.some((s) => s.type === "about"    && s.visible);
+  const hasCulture  = sections.some((s) => s.type === "culture"  && s.visible);
+  const hasBenefits = sections.some((s) => s.type === "benefits" && s.visible);
+
+  const navLinks = [
+    hasAbout    && { href: "#about",    label: "About" },
+    hasCulture  && { href: "#culture",  label: "Culture" },
+    hasBenefits && { href: "#benefits", label: "Benefits" },
+  ].filter(Boolean) as { href: string; label: string }[];
+
+  const roleLabel =
+    openRoleCount > 0
+      ? `${openRoleCount} Open Role${openRoleCount > 1 ? "s" : ""}`
+      : "Open Roles";
+
   return (
     <header
       className="sticky top-0 z-30 w-full"
       style={{
-        backgroundColor: "rgba(243,243,241,0.92)",
-        backdropFilter: "blur(12px)",
+        backgroundColor: "rgba(243,243,241,0.94)",
+        backdropFilter: "blur(14px)",
         borderBottom: "1px solid var(--border-subtle)",
       }}
     >
-      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-        {/* Brand */}
+      {/* ── Main row ─────────────────────────────────────────────────── */}
+      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between gap-4">
+        {/* Brand: logo + name always visible */}
         <Link
           href={`/${slug}/careers`}
-          className="flex items-center gap-3 font-bold text-base tracking-tight transition-opacity hover:opacity-70"
+          className="flex items-center gap-2.5 font-bold text-sm tracking-tight transition-opacity hover:opacity-70 shrink-0"
           style={{ color: "var(--ink)" }}
         >
-          {logoUrl ? (
+          {logoUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={logoUrl} alt={companyName} className="h-6 object-contain" />
-          ) : (
-            companyName
+            <img
+              src={logoUrl}
+              alt={companyName}
+              className="h-6 object-contain shrink-0"
+            />
           )}
+          <span>{companyName}</span>
         </Link>
 
-        {/* Nav links — desktop */}
-        <nav className="hidden md:flex items-center gap-6 text-sm" style={{ color: "var(--muted-ink)" }}>
-          <a href="#about" className="hover:text-ink transition-colors">About</a>
-          <a href="#culture" className="hover:text-ink transition-colors">Culture</a>
-          <a href="#benefits" className="hover:text-ink transition-colors">Benefits</a>
+        {/* Desktop nav — only rendered if nav links exist */}
+        {navLinks.length > 0 && (
+          <nav
+            className="hidden md:flex items-center gap-5 text-sm"
+            aria-label="Careers navigation"
+          >
+            {navLinks.map(({ href, label }) => (
+              <a
+                key={href}
+                href={href}
+                className="font-medium transition-opacity hover:opacity-60"
+                style={{ color: "var(--muted-ink)" }}
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
+        )}
+
+        {/* Right: Open Roles CTA + mobile hamburger */}
+        <div className="flex items-center gap-2 shrink-0">
           <a
             href="#jobs"
             className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-xs transition-all hover:opacity-80"
             style={{ backgroundColor: "var(--ink)", color: "var(--canvas)" }}
           >
-            {openRoleCount > 0 ? `${openRoleCount} Open Role${openRoleCount > 1 ? "s" : ""}` : "Open Roles"}
+            {roleLabel}
           </a>
-        </nav>
 
-        {/* Mobile CTA */}
-        <a
-          href="#jobs"
-          className="md:hidden inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-semibold text-xs transition-all hover:opacity-80"
-          style={{ backgroundColor: "var(--ink)", color: "var(--canvas)" }}
-        >
-          Roles
-        </a>
+          {/* Mobile hamburger — only shown if there are nav links */}
+          {navLinks.length > 0 && (
+            <button
+              type="button"
+              className="md:hidden flex flex-col justify-center items-center h-8 w-8 gap-1.5 rounded-lg transition-opacity hover:opacity-60"
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((v) => !v)}
+            >
+              <span
+                className="block h-0.5 w-5 rounded-full transition-all"
+                style={{
+                  backgroundColor: "var(--ink)",
+                  transform: menuOpen
+                    ? "rotate(45deg) translate(3px, 3px)"
+                    : "none",
+                }}
+              />
+              <span
+                className="block h-0.5 w-5 rounded-full transition-all"
+                style={{
+                  backgroundColor: "var(--ink)",
+                  opacity: menuOpen ? 0 : 1,
+                }}
+              />
+              <span
+                className="block h-0.5 w-5 rounded-full transition-all"
+                style={{
+                  backgroundColor: "var(--ink)",
+                  transform: menuOpen
+                    ? "rotate(-45deg) translate(3px, -3px)"
+                    : "none",
+                }}
+              />
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* ── Mobile dropdown ──────────────────────────────────────────── */}
+      {menuOpen && navLinks.length > 0 && (
+        <div
+          className="md:hidden px-6 pb-4 flex flex-col gap-1"
+          style={{ borderTop: "1px solid var(--border-subtle)" }}
+        >
+          {navLinks.map(({ href, label }) => (
+            <a
+              key={href}
+              href={href}
+              className="text-sm font-medium py-2 transition-opacity hover:opacity-60"
+              style={{ color: "var(--ink)" }}
+              onClick={() => setMenuOpen(false)}
+            >
+              {label}
+            </a>
+          ))}
+        </div>
+      )}
     </header>
   );
 }
@@ -133,10 +221,12 @@ function PublicJobRow({
           border: "1px solid var(--border-subtle)",
         }}
         onMouseEnter={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--green)")
+          ((e.currentTarget as HTMLDivElement).style.borderColor =
+            "var(--green)")
         }
         onMouseLeave={(e) =>
-          ((e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-subtle)")
+          ((e.currentTarget as HTMLDivElement).style.borderColor =
+            "var(--border-subtle)")
         }
       >
         <div className="min-w-0 flex-1">
@@ -148,8 +238,14 @@ function PublicJobRow({
           </h3>
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             {meta.map((m, i) => (
-              <span key={i} className="text-xs" style={{ color: "var(--muted-ink)" }}>
-                {i > 0 && <span className="mr-3 opacity-30">·</span>}
+              <span
+                key={i}
+                className="text-xs"
+                style={{ color: "var(--muted-ink)" }}
+              >
+                {i > 0 && (
+                  <span className="mr-3 opacity-30">·</span>
+                )}
                 {m}
               </span>
             ))}
@@ -157,7 +253,10 @@ function PublicJobRow({
         </div>
         <div className="shrink-0 ml-4 flex items-center gap-2">
           {postedAt && (
-            <span className="text-xs hidden sm:block" style={{ color: "var(--muted-ink)", opacity: 0.6 }}>
+            <span
+              className="text-xs hidden sm:block"
+              style={{ color: "var(--muted-ink)", opacity: 0.6 }}
+            >
               {postedAt}
             </span>
           )}
@@ -189,7 +288,10 @@ function PublicFooter({
     >
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-sm" style={{ color: "var(--ink)" }}>
+          <span
+            className="font-bold text-sm"
+            style={{ color: "var(--ink)" }}
+          >
             {companyName}
           </span>
           <span style={{ color: "var(--border-subtle)" }}>·</span>
@@ -197,7 +299,10 @@ function PublicFooter({
             Careers
           </span>
         </div>
-        <div className="flex items-center gap-4 text-xs" style={{ color: "var(--muted-ink)" }}>
+        <div
+          className="flex items-center gap-4 text-xs"
+          style={{ color: "var(--muted-ink)" }}
+        >
           <Link href={`/${slug}/careers#jobs`} className="hover:underline">
             Open Roles
           </Link>
@@ -253,21 +358,19 @@ export function CareersPageClient({ page, companySlug }: Props) {
   );
   const departments = useMemo(() => Object.keys(grouped).sort(), [grouped]);
 
-  // Find the jobs section config for title/subtitle
+  // Find jobs section config for section title/subtitle
   const jobSection = sections.find((s) => s.type === "jobs");
   const jobsTitle = (jobSection?.data?.title as string) || "Open Roles";
   const jobsSubtitle = jobSection?.data?.subtitle as string | undefined;
 
   return (
-    <div
-      className="min-h-screen"
-      style={{ backgroundColor: "var(--canvas)" }}
-    >
+    <div className="min-h-screen" style={{ backgroundColor: "var(--canvas)" }}>
       <PublicNav
         companyName={page.company_name}
         logoUrl={page.theme_config?.logo_url}
         openRoleCount={page.open_jobs.length}
         slug={companySlug}
+        sections={sections}
       />
 
       {/* Render all non-jobs sections through the shared renderer */}
@@ -278,7 +381,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
         companySlug={companySlug}
       />
 
-      {/* Jobs section — rendered separately to inject filters */}
+      {/* Jobs section — rendered separately to inject search/filter controls */}
       {sections.some((s) => s.type === "jobs" && s.visible) && (
         <section
           id="jobs"
@@ -286,7 +389,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
           style={{ backgroundColor: "var(--canvas)" }}
         >
           <div className="max-w-4xl mx-auto">
-            {/* Jobs section header */}
+            {/* Header */}
             <div className="mb-10">
               <h2
                 className="text-3xl md:text-4xl font-extrabold tracking-tight"
@@ -354,8 +457,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
                       (e.currentTarget.style.borderColor = "var(--green)")
                     }
                     onBlur={(e) =>
-                      (e.currentTarget.style.borderColor =
-                        "var(--border-subtle)")
+                      (e.currentTarget.style.borderColor = "var(--border-subtle)")
                     }
                   >
                     <option value="">All locations</option>
@@ -389,8 +491,7 @@ export function CareersPageClient({ page, companySlug }: Props) {
                       (e.currentTarget.style.borderColor = "var(--green)")
                     }
                     onBlur={(e) =>
-                      (e.currentTarget.style.borderColor =
-                        "var(--border-subtle)")
+                      (e.currentTarget.style.borderColor = "var(--border-subtle)")
                     }
                   >
                     <option value="">All types</option>
@@ -406,7 +507,10 @@ export function CareersPageClient({ page, companySlug }: Props) {
 
             {/* Result count when filters active */}
             {hasFilters && (
-              <p className="text-xs mb-5" style={{ color: "var(--muted-ink)" }}>
+              <p
+                className="text-xs mb-5"
+                style={{ color: "var(--muted-ink)" }}
+              >
                 {filteredJobs.length === 0
                   ? "No roles match"
                   : `${filteredJobs.length} role${filteredJobs.length !== 1 ? "s" : ""} found`}
@@ -430,7 +534,10 @@ export function CareersPageClient({ page, companySlug }: Props) {
                     ? "No open roles right now"
                     : "No roles match your search"}
                 </p>
-                <p className="text-xs mb-4" style={{ color: "var(--muted-ink)" }}>
+                <p
+                  className="text-xs mb-4"
+                  style={{ color: "var(--muted-ink)" }}
+                >
                   {page.open_jobs.length === 0
                     ? "We're growing — check back soon."
                     : "Try adjusting your filters."}
