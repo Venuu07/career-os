@@ -6,7 +6,7 @@ import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { apiFetch } from "@/lib/api";
-import { ThemeConfig, CareersPageResponse, SectionConfig } from "@/lib/types";
+import { ThemeConfig, SocialLinks, CareersPageResponse, SectionConfig } from "@/lib/types";
 import {
   LogOut,
   CheckCircle2,
@@ -20,12 +20,13 @@ import {
 
 // ─── Design tokens (mirrors CareerOS V1) ─────────────────────────────────────
 
-const DEFAULTS: Required<ThemeConfig> = {
+const DEFAULTS: Required<Omit<ThemeConfig, 'social_links'>> & { social_links: Required<SocialLinks> } = {
   primary_color: "#1E2330",
   accent_color: "#A9CBB7",
   background_color: "#F3F3F1",
   font_family: "",
   logo_url: "",
+  social_links: { linkedin: "", instagram: "", x: "" },
 };
 
 const FONT_OPTIONS = [
@@ -43,13 +44,19 @@ function isValidHex(v: string) {
   return /^#[0-9a-fA-F]{6}$/.test(v);
 }
 
-function mergeTheme(raw: Record<string, unknown>): Required<ThemeConfig> {
+function mergeTheme(raw: Record<string, unknown>) {
+  const rawLinks = (raw.social_links ?? {}) as Record<string, string>;
   return {
     primary_color: (raw.primary_color as string) || DEFAULTS.primary_color,
     accent_color: (raw.accent_color as string) || DEFAULTS.accent_color,
     background_color: (raw.background_color as string) || DEFAULTS.background_color,
     font_family: (raw.font_family as string) || DEFAULTS.font_family,
     logo_url: (raw.logo_url as string) || DEFAULTS.logo_url,
+    social_links: {
+      linkedin: (rawLinks.linkedin as string) || "",
+      instagram: (rawLinks.instagram as string) || "",
+      x: (rawLinks.x as string) || "",
+    },
   };
 }
 
@@ -63,7 +70,7 @@ function AppHeader({ companyName, onLogout }: { companyName?: string; onLogout: 
         style={{ backgroundColor: "rgba(255,255,255,0.92)", border: "1px solid var(--border-subtle)" }}
       >
         <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center group">
+          <Link href="/" className="flex items-center group" aria-label="CareerOS home">
             <CareerOSLogo size="sm" />
           </Link>
           {companyName && (
@@ -294,9 +301,9 @@ export default function BrandingPage() {
   const [fetchError, setFetchError] = useState("");
 
   // The current draft theme — what we're editing
-  const [theme, setTheme] = useState<Required<ThemeConfig>>(DEFAULTS);
+  const [theme, setTheme] = useState(DEFAULTS);
   // What the draft version originally had (for dirty detection)
-  const [savedTheme, setSavedTheme] = useState<Required<ThemeConfig>>(DEFAULTS);
+  const [savedTheme, setSavedTheme] = useState(DEFAULTS);
   // The sections — needed for PUT /draft (we always include them, unchanged)
   const [sections, setSections] = useState<SectionConfig[]>([]);
 
@@ -353,6 +360,11 @@ export default function BrandingPage() {
             background_color: theme.background_color || null,
             font_family: theme.font_family || null,
             logo_url: theme.logo_url || null,
+            social_links: {
+              linkedin: theme.social_links.linkedin || null,
+              instagram: theme.social_links.instagram || null,
+              x: theme.social_links.x || null,
+            },
           },
         }),
       });
@@ -584,7 +596,43 @@ export default function BrandingPage() {
               </div>
             </Card>
 
-            {/* Builder integration note */}
+            {/* Social Links */}
+            <Card title="Social Links">
+              <div className="space-y-4">
+                <p className="text-xs" style={{ color: "var(--muted-ink)" }}>
+                  Links appear in the public careers page footer. Leave blank to hide.
+                </p>
+                {([
+                  { key: "linkedin" as const, label: "LinkedIn", placeholder: "https://linkedin.com/company/acme" },
+                  { key: "instagram" as const, label: "Instagram", placeholder: "https://instagram.com/acme" },
+                  { key: "x" as const, label: "X (Twitter)", placeholder: "https://x.com/acme" },
+                ] as const).map(({ key, label, placeholder }) => {
+                  const val = theme.social_links[key];
+                  const isInvalid = val.length > 0 && !/^https?:\/\/.+/.test(val);
+                  return (
+                    <div key={key}>
+                      <label className="block text-sm font-semibold mb-1.5" style={{ color: "var(--ink)" }}>{label}</label>
+                      <input
+                        type="url"
+                        className="w-full h-10 px-3 rounded-xl text-sm border outline-none transition-all"
+                        style={{
+                          borderColor: isInvalid ? "#e04a00" : "var(--border)",
+                          backgroundColor: "var(--canvas)",
+                          color: "var(--ink)",
+                        }}
+                        placeholder={placeholder}
+                        value={val}
+                        onChange={(e) => setTheme((prev) => ({ ...prev, social_links: { ...prev.social_links, [key]: e.target.value } }))}
+                      />
+                      {isInvalid && (
+                        <p className="text-xs mt-1" style={{ color: "#e04a00" }}>Must start with https:// or http://</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </Card>
+
             <div
               className="flex items-start gap-3 px-4 py-3.5 rounded-2xl"
               style={{ background: "rgba(169,203,183,0.12)", border: "1.5px solid rgba(169,203,183,0.4)" }}

@@ -1,9 +1,16 @@
+export interface SocialLinks {
+  linkedin?: string;
+  instagram?: string;
+  x?: string;
+}
+
 export interface ThemeConfig {
   primary_color?: string;
   accent_color?: string;
   background_color?: string;
   font_family?: string;
   logo_url?: string;
+  social_links?: SocialLinks;
 }
 
 export interface BaseSectionData {

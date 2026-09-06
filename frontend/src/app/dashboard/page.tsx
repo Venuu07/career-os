@@ -41,7 +41,7 @@ function AppHeader({
       >
         {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center group">
+          <Link href="/" className="flex items-center group" aria-label="CareerOS home">
             <CareerOSLogo size="sm" />
           </Link>
           {companyName && (

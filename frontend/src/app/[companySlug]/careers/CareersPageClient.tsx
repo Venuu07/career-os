@@ -3,8 +3,30 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { CareerPageRenderer } from "@/components/sections/CareerPageRenderer";
-import { PublicCareerPageResponse, JobResponse, WorkPolicy } from "@/lib/types";
+import { PublicCareerPageResponse, JobResponse, WorkPolicy, SocialLinks } from "@/lib/types";
 import { Search, MapPin, Briefcase, ArrowRight, Globe2, X } from "lucide-react";
+
+const LinkedinIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" />
+    <rect width="4" height="12" x="2" y="9" />
+    <circle cx="4" cy="4" r="2" />
+  </svg>
+);
+
+const InstagramIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+  </svg>
+);
+
+const TwitterIcon = (props: React.SVGProps<SVGSVGElement>) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+    <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z" />
+  </svg>
+);
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -287,10 +309,33 @@ function PublicJobRow({
 function PublicFooter({
   companyName,
   slug,
+  socialLinks,
 }: {
   companyName: string;
   slug: string;
+  socialLinks?: SocialLinks;
 }) {
+  const links = [
+    {
+      key: "linkedin",
+      href: socialLinks?.linkedin,
+      icon: <LinkedinIcon className="h-4 w-4" />,
+      label: "LinkedIn",
+    },
+    {
+      key: "instagram",
+      href: socialLinks?.instagram,
+      icon: <InstagramIcon className="h-4 w-4" />,
+      label: "Instagram",
+    },
+    {
+      key: "x",
+      href: socialLinks?.x,
+      icon: <TwitterIcon className="h-4 w-4" />,
+      label: "X (Twitter)",
+    },
+  ].filter((l): l is typeof l & { href: string } => typeof l.href === "string" && /^https?:\/\/.+/.test(l.href));
+
   return (
     <footer
       className="w-full py-10 px-6"
@@ -309,15 +354,38 @@ function PublicFooter({
             Careers
           </span>
         </div>
-        <div
-          className="flex items-center gap-4 text-xs"
-          style={{ color: "var(--muted-ink)" }}
-        >
-          <Link href={`/${slug}/careers#jobs`} className="hover:underline">
-            Open Roles
-          </Link>
-          <span className="opacity-30">·</span>
-          <span>Powered by CareerOS</span>
+        <div className="flex items-center gap-4">
+          {/* Social icons */}
+          {links.length > 0 && (
+            <div className="flex items-center gap-3">
+              {links.map((l) => (
+                <a
+                  key={l.key}
+                  href={l.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${companyName} on ${l.label}`}
+                  className="transition-opacity hover:opacity-60"
+                  style={{ color: "var(--muted-ink)" }}
+                >
+                  {l.icon}
+                </a>
+              ))}
+            </div>
+          )}
+          {links.length > 0 && (
+            <span className="opacity-30 text-xs" style={{ color: "var(--muted-ink)" }}>·</span>
+          )}
+          <div
+            className="flex items-center gap-4 text-xs"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            <Link href={`/${slug}/careers#jobs`} className="hover:underline">
+              Open Roles
+            </Link>
+            <span className="opacity-30">·</span>
+            <span>Powered by CareerOS</span>
+          </div>
         </div>
       </div>
     </footer>
@@ -667,7 +735,11 @@ export function CareersPageClient({ page, companySlug }: Props) {
         </section>
       )}
 
-      <PublicFooter companyName={page.company_name} slug={companySlug} />
+      <PublicFooter
+        companyName={page.company_name}
+        slug={companySlug}
+        socialLinks={page.theme_config?.social_links}
+      />
     </div>
   );
 }

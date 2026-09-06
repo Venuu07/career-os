@@ -85,7 +85,7 @@ function AppHeader({ companyName, onLogout }: { companyName?: string; onLogout: 
         style={{ backgroundColor: "rgba(255,255,255,0.92)", border: "1px solid var(--border-subtle)" }}
       >
         <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center group">
+          <Link href="/" className="flex items-center group" aria-label="CareerOS home">
             <CareerOSLogo size="sm" />
           </Link>
           {companyName && (
