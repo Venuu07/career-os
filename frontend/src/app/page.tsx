@@ -62,7 +62,14 @@ export default function HomePage() {
   ];
 
   return (
-    <div className="min-h-screen bg-canvas flex flex-col" style={{ fontFamily: "var(--font-onest, Onest, system-ui, sans-serif)" }}>
+    <div className="min-h-screen bg-canvas flex flex-col relative" style={{ fontFamily: "var(--font-onest, Onest, system-ui, sans-serif)" }}>
+      {/* ── Background Grid ──────────────────────────────────────────────── */}
+      <div className="fixed inset-0 pointer-events-none z-0" style={{
+        backgroundImage: "linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px)",
+        backgroundSize: "64px 64px",
+        maskImage: "radial-gradient(ellipse at center, black 0%, transparent 80%)",
+        WebkitMaskImage: "radial-gradient(ellipse at center, black 0%, transparent 80%)",
+      }} />
       {/* ── Nav ─────────────────────────────────────────────────────────── */}
       <header
         className="sticky top-0 z-30 backdrop-blur-md"
@@ -157,7 +164,7 @@ export default function HomePage() {
           </div>
 
           {/* Proof bullets */}
-          <ul className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2">
+          <ul className="mt-10 flex flex-wrap justify-center gap-x-6 gap-y-2 relative z-10">
             {bullets.map((b) => (
               <li
                 key={b}
@@ -172,6 +179,44 @@ export default function HomePage() {
               </li>
             ))}
           </ul>
+        </section>
+
+        {/* ── Product Loop ──────────────────────────────────────────────── */}
+        <section className="max-w-5xl mx-auto px-6 pb-24 relative z-10">
+          <div className="text-center mb-12">
+            <h2 className="text-h3 font-bold" style={{ color: "var(--ink)" }}>From recruiter config to candidate experience</h2>
+            <p className="mt-3 text-sm" style={{ color: "var(--muted-ink)" }}>CareerOS turns configuration into a polished candidate journey.</p>
+          </div>
+          
+          <div className="flex flex-col md:flex-row items-stretch justify-center gap-4 relative">
+            {/* Recruiter Box */}
+            <div className="flex-1 p-8 rounded-[2rem] flex flex-col justify-center" style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border-subtle)" }}>
+              <div className="text-xs font-bold tracking-widest uppercase mb-8" style={{ color: "var(--muted-ink)" }}>The Recruiter</div>
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full bg-[var(--green-bg)] text-[var(--green)] flex items-center justify-center text-xs font-bold">1</span> <span className="font-semibold text-lg" style={{ color: "var(--ink)" }}>Build & Brand</span></div>
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full bg-[var(--orange-bg)] text-[var(--orange)] flex items-center justify-center text-xs font-bold">2</span> <span className="font-semibold text-lg" style={{ color: "var(--ink)" }}>Curate Roles</span></div>
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full bg-[var(--lavender-bg)] text-[var(--lavender)] flex items-center justify-center text-xs font-bold">3</span> <span className="font-semibold text-lg" style={{ color: "var(--ink)" }}>Preview & Publish</span></div>
+              </div>
+            </div>
+            
+            {/* Arrow */}
+            <div className="hidden md:flex flex-col items-center justify-center px-2">
+              <ArrowRight className="h-6 w-6" style={{ color: "var(--border-subtle)" }} strokeWidth={3} />
+            </div>
+            <div className="flex md:hidden flex-col items-center justify-center py-2">
+              <div className="h-6 w-0.5" style={{ backgroundColor: "var(--border-subtle)" }}></div>
+            </div>
+            
+            {/* Candidate Box */}
+            <div className="flex-1 p-8 rounded-[2rem] flex flex-col justify-center" style={{ backgroundColor: "var(--ink)", color: "var(--canvas)" }}>
+              <div className="text-xs font-bold tracking-widest uppercase mb-8" style={{ color: "rgba(255,255,255,0.5)" }}>The Candidate</div>
+              <div className="flex flex-col gap-5">
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>1</span> <span className="font-semibold text-lg">Explore Company</span></div>
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>2</span> <span className="font-semibold text-lg">Discover Roles</span></div>
+                <div className="flex items-center gap-4"><span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold" style={{ backgroundColor: "rgba(255,255,255,0.15)" }}>3</span> <span className="font-semibold text-lg">Apply Seamlessly</span></div>
+              </div>
+            </div>
+          </div>
         </section>
 
         {/* ── Preview strip ─────────────────────────────────────────────── */}
