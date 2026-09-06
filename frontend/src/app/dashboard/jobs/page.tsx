@@ -73,6 +73,7 @@ function AppHeader({ companyName, onLogout }: { companyName?: string; onLogout: 
         <div className="flex items-center gap-1">
           <Link href="/dashboard" className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70" style={{ color: "var(--muted-ink)" }}>Dashboard</Link>
           <Link href="/dashboard/builder" className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70" style={{ color: "var(--muted-ink)" }}>Builder</Link>
+          <Link href="/dashboard/branding" className="px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70" style={{ color: "var(--muted-ink)" }}>Branding</Link>
           <button onClick={onLogout} className="flex items-center gap-1.5 ml-2 px-3 py-1.5 rounded-full text-xs font-medium transition-all hover:opacity-70" style={{ color: "var(--muted-ink)" }}>
             <LogOut className="h-3.5 w-3.5" /><span className="hidden sm:inline">Sign out</span>
           </button>
