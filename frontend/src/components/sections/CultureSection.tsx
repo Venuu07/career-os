@@ -1,4 +1,5 @@
 import { PreviewProps, InspectorProps } from "./registry";
+import { AIAssistPanel } from "@/components/builder/AIAssistPanel";
 
 // ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
@@ -148,6 +149,40 @@ export function CultureInspector({ data, updateData }: InspectorProps) {
         />
       </Field>
 
+      {/* ── AI Assist ───────────────────────────────────────────────────── */}
+      <div className="pt-1 pb-2">
+        <div className="flex items-center gap-3 mb-3">
+          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+          <span className="text-[10px] font-bold tracking-widest uppercase" style={{ color: "var(--muted-ink)" }}>AI</span>
+          <div className="flex-1 h-px" style={{ backgroundColor: "var(--border-subtle)" }} />
+        </div>
+        <AIAssistPanel
+          contentType="culture"
+          context={{
+            content: String(data.introduction || data.title || ""),
+          }}
+          onApply={(result) => {
+            const existing: Array<{ icon: string; title: string; description: string }> = data.values || [];
+            updateData({
+              ...data,
+              ...(result.headline   ? { title:        result.headline } : {}),
+              ...(result.intro      ? { introduction: result.intro    } : {}),
+              // Merge AI values into existing list, preserving existing icons
+              ...(result.values && result.values.length > 0
+                ? {
+                    values: result.values.map((v, i) => ({
+                      icon:        existing[i]?.icon || "✦",
+                      title:       v.title,
+                      description: v.description,
+                    })),
+                  }
+                : {}),
+            });
+          }}
+        />
+      </div>
+
+      {/* ── Values ──────────────────────────────────────────────────────── */}
       <div className="pt-2">
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-medium text-zinc-700 dark:text-zinc-300">

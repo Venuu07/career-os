@@ -90,6 +90,10 @@ export function AIAssistPanel({ contentType, context, onApply }: AIAssistPanelPr
   const [editDescription, setEditDescription] = useState("");
   const [editCta,         setEditCta]         = useState("");
   const [editBody,        setEditBody]        = useState("");
+  // Culture
+  const [editIntro,       setEditIntro]       = useState("");
+  // Job Description
+  const [editJobDesc,     setEditJobDesc]     = useState("");
 
   const reset = () => {
     setResult(null);
@@ -131,6 +135,8 @@ export function AIAssistPanel({ contentType, context, onApply }: AIAssistPanelPr
       // Lightweight frontend validation
       if (contentType === "hero" && !data.headline) throw new Error("AI returned empty headline.");
       if (contentType === "about" && !data.body) throw new Error("AI returned empty body.");
+      if (contentType === "culture" && !data.headline && !data.intro) throw new Error("AI returned empty culture copy.");
+      if (contentType === "job_description" && !data.description) throw new Error("AI returned empty job description.");
 
       setResult(data as AIGeneratedResult);
 
@@ -139,6 +145,8 @@ export function AIAssistPanel({ contentType, context, onApply }: AIAssistPanelPr
       setEditDescription(data.description ?? "");
       setEditCta(data.cta ?? "");
       setEditBody(data.body ?? "");
+      setEditIntro(data.intro ?? "");
+      setEditJobDesc(data.description ?? "");
     } catch (err: unknown) {
       const status = (err as { status?: number }).status;
       setError(httpErrorMessage(status));
@@ -153,9 +161,11 @@ export function AIAssistPanel({ contentType, context, onApply }: AIAssistPanelPr
     const applied: AIGeneratedResult = {
       ...result,
       headline:    editHeadline    || result.headline    || undefined,
-      description: editDescription || result.description || undefined,
+      description: (contentType === "job_description" ? editJobDesc : editDescription)
+                    || result.description || undefined,
       cta:         editCta         || result.cta         || undefined,
       body:        editBody        || result.body        || undefined,
+      intro:       editIntro       || result.intro       || undefined,
     };
     onApply(applied);
     handleClose();
@@ -369,6 +379,64 @@ export function AIAssistPanel({ contentType, context, onApply }: AIAssistPanelPr
                     rows={5}
                   />
                 )}
+              </div>
+            )}
+
+            {/* Culture: headline + intro (values are read-only preview) */}
+            {contentType === "culture" && (
+              <div className="space-y-2.5">
+                {result.headline !== undefined && (
+                  <EditableField
+                    label="Section title"
+                    value={editHeadline}
+                    onChange={setEditHeadline}
+                    rows={1}
+                  />
+                )}
+                {result.intro !== undefined && (
+                  <EditableField
+                    label="Introduction"
+                    value={editIntro}
+                    onChange={setEditIntro}
+                    rows={3}
+                  />
+                )}
+                {result.values && result.values.length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-semibold uppercase tracking-wider mb-1.5" style={{ color: "var(--muted-ink)" }}>
+                      Values preview
+                    </p>
+                    <div className="space-y-1.5">
+                      {result.values.slice(0, 4).map((v, i) => (
+                        <div
+                          key={i}
+                          className="rounded-lg px-2.5 py-2 text-xs"
+                          style={{ backgroundColor: "var(--surface)", border: "1px solid var(--border-subtle)" }}
+                        >
+                          <span className="font-semibold" style={{ color: "var(--ink)" }}>{v.title}</span>
+                          {v.description && (
+                            <span style={{ color: "var(--muted-ink)" }}> — {v.description.slice(0, 60)}{v.description.length > 60 ? "…" : ""}</span>
+                          )}
+                        </div>
+                      ))}
+                      {result.values.length > 4 && (
+                        <p className="text-[10px]" style={{ color: "var(--muted-ink)" }}>+{result.values.length - 4} more values</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Job Description: single editable textarea */}
+            {contentType === "job_description" && (
+              <div>
+                <EditableField
+                  label="Job description"
+                  value={editJobDesc}
+                  onChange={setEditJobDesc}
+                  rows={7}
+                />
               </div>
             )}
 

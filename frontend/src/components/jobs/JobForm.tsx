@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { X } from "lucide-react";
 import { JobResponse } from "@/lib/types";
+import { AIAssistPanel } from "@/components/builder/AIAssistPanel";
 
 export interface JobFormData {
   title: string;
@@ -383,6 +384,39 @@ export function JobForm({ job, onSubmit, onClose }: Props) {
             value={form.description}
             onChange={(e) => set("description", e.target.value)}
           />
+
+          {/* ── AI Assist ───────────────────────────────────────────────────── */}
+          <div className="mt-3">
+            {form.title.trim() ? (
+              <AIAssistPanel
+                contentType="job_description"
+                context={{
+                  title:            form.title,
+                  department:       form.department  || undefined,
+                  location:         form.location    || undefined,
+                  work_policy:      form.work_policy || undefined,
+                  job_type:         form.job_type,
+                  experience_level: form.experience_level || undefined,
+                  salary_range:     form.salary_range    || undefined,
+                  description:      form.description     || undefined,
+                }}
+                onApply={(result) => {
+                  // Update only the description field in local form state.
+                  // NEVER calls onSubmit — recruiter must click Create / Save.
+                  if (result.description) {
+                    set("description", result.description);
+                  }
+                }}
+              />
+            ) : (
+              <p
+                className="text-xs text-center py-2"
+                style={{ color: "var(--muted-ink)" }}
+              >
+                Add a job title first to use AI assistance.
+              </p>
+            )}
+          </div>
         </section>
 
         {/* Bottom padding for scrollable form */}
