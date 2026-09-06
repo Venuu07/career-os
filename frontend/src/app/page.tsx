@@ -10,6 +10,7 @@ import {
   Globe,
   CheckCircle2,
 } from "lucide-react";
+import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 
 export default function HomePage() {
   const [authChecked, setAuthChecked] = useState(false);
@@ -71,19 +72,8 @@ export default function HomePage() {
         }}
       >
         <div className="max-w-6xl mx-auto flex h-14 items-center justify-between px-6">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="h-8 w-8 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "var(--ink)" }}
-            >
-              <span className="text-white text-xs font-bold tracking-tight">C</span>
-            </div>
-            <span
-              className="font-bold text-base tracking-tight"
-              style={{ color: "var(--ink)" }}
-            >
-              CareerOS
-            </span>
+          <div className="flex items-center">
+            <CareerOSLogo size="sm" />
           </div>
 
           <nav className="flex items-center gap-2">

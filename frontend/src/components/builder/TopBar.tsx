@@ -18,6 +18,7 @@ import {
   EyeOff,
   Circle,
 } from "lucide-react";
+import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 import {
   Dialog,
   DialogContent,
@@ -159,12 +160,7 @@ export function TopBar() {
           </Link>
 
           <div className="hidden sm:flex items-center gap-2 min-w-0">
-            <div
-              className="h-5 w-5 rounded-md flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "var(--ink)" }}
-            >
-              <span className="text-white text-[9px] font-bold">C</span>
-            </div>
+            <CareerOSLogo size="sm" wordmark={false} />
             <span
               className="text-sm font-semibold truncate max-w-32"
               style={{ color: "var(--ink)" }}

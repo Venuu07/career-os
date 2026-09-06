@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { SectionConfig, CareersPageResponse, JobResponse, ThemeConfig } from "@/lib/types";
 import { apiFetch } from "@/lib/api";
@@ -40,19 +41,8 @@ function AppHeader({
       >
         {/* Brand */}
         <div className="flex items-center gap-2.5">
-          <Link href="/dashboard" className="flex items-center gap-2.5 group">
-            <div
-              className="h-7 w-7 rounded-xl flex items-center justify-center shrink-0 transition-opacity group-hover:opacity-80"
-              style={{ backgroundColor: "var(--ink)" }}
-            >
-              <span className="text-white text-xs font-bold tracking-tight">C</span>
-            </div>
-            <span
-              className="font-bold text-sm tracking-tight"
-              style={{ color: "var(--ink)" }}
-            >
-              CareerOS
-            </span>
+          <Link href="/dashboard" className="flex items-center group">
+            <CareerOSLogo size="sm" />
           </Link>
           {companyName && (
             <>

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowRight, Eye, EyeOff } from "lucide-react";
+import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -67,18 +68,8 @@ export default function RegisterPage() {
         style={{ backgroundColor: "var(--ink)" }}
       >
         {/* Logo */}
-        <div className="flex items-center gap-2.5">
-          <div
-            className="h-9 w-9 rounded-xl flex items-center justify-center"
-            style={{ backgroundColor: "var(--green)" }}
-          >
-            <span className="text-sm font-bold tracking-tight" style={{ color: "var(--ink)" }}>
-              C
-            </span>
-          </div>
-          <span className="font-bold text-lg tracking-tight" style={{ color: "var(--canvas)" }}>
-            CareerOS
-          </span>
+        <div className="flex items-center">
+          <CareerOSLogo size="md" />
         </div>
 
         {/* Center content */}
@@ -159,19 +150,8 @@ export default function RegisterPage() {
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-12">
         <div className="max-w-sm w-full mx-auto">
           {/* Mobile logo */}
-          <Link href="/" className="lg:hidden inline-flex items-center gap-2.5 mb-10">
-            <div
-              className="h-9 w-9 rounded-xl flex items-center justify-center"
-              style={{ backgroundColor: "var(--ink)" }}
-            >
-              <span className="text-white text-sm font-bold tracking-tight">C</span>
-            </div>
-            <span
-              className="font-bold text-lg tracking-tight"
-              style={{ color: "var(--ink)" }}
-            >
-              CareerOS
-            </span>
+          <Link href="/" className="lg:hidden inline-flex items-center mb-10 transition-opacity hover:opacity-80">
+            <CareerOSLogo size="md" />
           </Link>
 
           {/* Heading */}

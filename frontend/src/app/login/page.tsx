@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { ArrowRight, Eye, EyeOff, LayoutTemplate } from "lucide-react";
+import { CareerOSLogo } from "@/components/ui/CareerOSLogo";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -82,19 +83,8 @@ export default function LoginPage() {
       <div className="flex-1 flex flex-col justify-center px-8 sm:px-12 lg:px-16 py-12">
         <div className="max-w-sm w-full mx-auto">
           {/* Logo */}
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-12 group">
-            <div
-              className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
-              style={{ backgroundColor: "var(--ink)" }}
-            >
-              <span className="text-white text-sm font-bold tracking-tight">C</span>
-            </div>
-            <span
-              className="font-bold text-lg tracking-tight"
-              style={{ color: "var(--ink)" }}
-            >
-              CareerOS
-            </span>
+          <Link href="/" className="inline-flex items-center mb-12 group transition-opacity hover:opacity-80">
+            <CareerOSLogo size="md" />
           </Link>
 
           {/* Heading */}
