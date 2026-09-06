@@ -1,11 +1,10 @@
-﻿'''
+'''
 Stark Industries demo seed.
 
 Usage (from backend/):
     python -m scripts.seed_demo
 '''
 
-import csv
 import sys
 from pathlib import Path
 from datetime import datetime, timezone
@@ -27,8 +26,6 @@ DEMO_PASSWORD = 'Demo@12345'
 DEMO_FULL_NAME = 'Tony Stark'
 COMPANY_NAME = 'Stark Industries'
 COMPANY_SLUG = 'stark-industries'
-CSV_PATH = Path(__file__).resolve().parent.parent / 'data' / 'sampledata.csv'
-
 STARK_THEME = {
     'primary_color': '#0A84FF',
     'accent_color': '#00D4FF',
@@ -67,31 +64,6 @@ STARK_SECTIONS = [
     }},
 ]
 
-WORK_POLICY_MAP = {
-    'remote': WorkPolicy.REMOTE,
-    'hybrid': WorkPolicy.HYBRID,
-    'on-site': WorkPolicy.ONSITE,
-    'onsite': WorkPolicy.ONSITE,
-    'on site': WorkPolicy.ONSITE,
-}
-EMPLOYMENT_TYPE_MAP = {
-    'full time': JobType.FULL_TIME,
-    'full-time': JobType.FULL_TIME,
-    'part time': JobType.PART_TIME,
-    'part-time': JobType.PART_TIME,
-    'contract': JobType.CONTRACT,
-    'internship': JobType.INTERNSHIP,
-}
-EXPERIENCE_MAP = {
-    'junior': ExperienceLevel.ENTRY,
-    'entry': ExperienceLevel.ENTRY,
-    'entry-level': ExperienceLevel.ENTRY,
-    'mid-level': ExperienceLevel.MID,
-    'mid level': ExperienceLevel.MID,
-    'mid': ExperienceLevel.MID,
-    'senior': ExperienceLevel.SENIOR,
-    'lead': ExperienceLevel.LEAD,
-}
 
 
 def _get_or_create_user(db):
@@ -164,36 +136,259 @@ def _ensure_published(db, page, user):
     print(f'  [CREATED] Published v{max_v+1} + Draft v{max_v+2}')
 
 
+
+# ─── Curated demo jobs ────────────────────────────────────────────────────────
+# 16 hand-picked roles that cover all filter dimensions needed for the demo:
+#   departments  : Engineering (6), Product (2), Design (2), Data (2), Operations (2), R&D (2)
+#   work policy  : Remote, Hybrid, On-site
+#   locations    : Malibu, New York, London, Berlin, Tokyo, Remote/Global
+#   employment   : Full-time, Contract, Internship
+#   seniority    : Entry, Mid, Senior, Lead
+#   status       : all OPEN (curated, intentional)
+#
+# Titles are Stark-branded; data fields match existing Job model exactly.
+# ─────────────────────────────────────────────────────────────────────────────
+
+STARK_JOBS = [
+    # ── Engineering (6) ──────────────────────────────────────────────────────
+    {
+        'title': 'Senior Backend Engineer',
+        'department': 'Engineering',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'USD 160K–200K / year',
+        'description': 'Join our core platform team building the distributed systems that power arc reactor telemetry and real-time energy grid management. You will own backend services from design through production.',
+        'application_url': 'https://careers.starkindustries.com/apply/backend-engineer',
+    },
+    {
+        'title': 'Staff Frontend Engineer',
+        'department': 'Engineering',
+        'location': 'New York, NY',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.LEAD,
+        'salary_range': 'USD 180K–220K / year',
+        'description': 'Lead frontend architecture for our next-generation mission-control interfaces. You will set technical direction, mentor engineers, and ship React/TypeScript applications used by our global operations teams.',
+        'application_url': 'https://careers.starkindustries.com/apply/staff-frontend',
+    },
+    {
+        'title': 'DevOps Engineer',
+        'department': 'Engineering',
+        'location': 'Remote',
+        'work_policy': WorkPolicy.REMOTE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.MID,
+        'salary_range': 'USD 130K–160K / year',
+        'description': 'Own our Kubernetes infrastructure, CI/CD pipelines, and observability stack across six global data centers. We run some of the most demanding workloads on the planet — zero tolerance for downtime.',
+        'application_url': 'https://careers.starkindustries.com/apply/devops',
+    },
+    {
+        'title': 'Machine Learning Engineer',
+        'department': 'Engineering',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.ONSITE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'USD 170K–210K / year',
+        'description': 'Build and productionize ML models for autonomous systems, predictive maintenance, and threat detection. Work alongside our AI research team and deploy models that operate in millisecond latency environments.',
+        'application_url': 'https://careers.starkindustries.com/apply/ml-engineer',
+    },
+    {
+        'title': 'Mobile Engineer (iOS)',
+        'department': 'Engineering',
+        'location': 'London, United Kingdom',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.MID,
+        'salary_range': 'GBP 90K–115K / year',
+        'description': 'Build the Stark Field Operations iOS app used by technicians maintaining clean energy installations across Europe. Offline-first, real-time sync, and mission-critical reliability are non-negotiables.',
+        'application_url': 'https://careers.starkindustries.com/apply/ios-engineer',
+    },
+    {
+        'title': 'Engineering Intern – Embedded Systems',
+        'department': 'Engineering',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.ONSITE,
+        'job_type': JobType.INTERNSHIP,
+        'experience_level': ExperienceLevel.ENTRY,
+        'salary_range': 'USD 8K / month',
+        'description': 'Summer internship on our embedded systems team. Work on firmware for arc reactor control modules. Requires strong C/C++ fundamentals and curiosity for hardware-software interaction.',
+        'application_url': 'https://careers.starkindustries.com/apply/embedded-intern',
+    },
+    # ── Product (2) ──────────────────────────────────────────────────────────
+    {
+        'title': 'Senior Product Manager – AI Platform',
+        'department': 'Product',
+        'location': 'New York, NY',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'USD 160K–195K / year',
+        'description': 'Own the roadmap for JARVIS-class AI platform products. Partner with research, engineering, and enterprise customers to define the future of autonomous AI in industrial environments.',
+        'application_url': 'https://careers.starkindustries.com/apply/pm-ai',
+    },
+    {
+        'title': 'Associate Product Manager',
+        'department': 'Product',
+        'location': 'Remote',
+        'work_policy': WorkPolicy.REMOTE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.ENTRY,
+        'salary_range': 'USD 95K–120K / year',
+        'description': 'Join our APM program and rotate across product teams spanning clean energy, defense tech, and robotics. Ship features with real strategic weight within your first 90 days.',
+        'application_url': 'https://careers.starkindustries.com/apply/apm',
+    },
+    # ── Design (2) ───────────────────────────────────────────────────────────
+    {
+        'title': 'Senior Product Designer',
+        'department': 'Design',
+        'location': 'Berlin, Germany',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'EUR 85K–110K / year',
+        'description': 'Design mission-critical operator interfaces for Stark Energy Grid management systems. You will own end-to-end UX from research through delivery, with a strong focus on clarity under pressure.',
+        'application_url': 'https://careers.starkindustries.com/apply/product-designer',
+    },
+    {
+        'title': 'UX Researcher',
+        'department': 'Design',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.MID,
+        'salary_range': 'USD 120K–150K / year',
+        'description': 'Conduct generative and evaluative research to inform product strategy across our enterprise and consumer product lines. Build a deep understanding of how engineers, operators, and analysts use our systems under real conditions.',
+        'application_url': 'https://careers.starkindustries.com/apply/ux-researcher',
+    },
+    # ── Data (2) ─────────────────────────────────────────────────────────────
+    {
+        'title': 'Data Engineer',
+        'department': 'Data',
+        'location': 'Remote',
+        'work_policy': WorkPolicy.REMOTE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.MID,
+        'salary_range': 'USD 130K–165K / year',
+        'description': 'Build and maintain petabyte-scale data pipelines processing telemetry from arc reactors, satellite systems, and IoT sensor networks worldwide. dbt, Spark, and Airflow are your daily tools.',
+        'application_url': 'https://careers.starkindustries.com/apply/data-engineer',
+    },
+    {
+        'title': 'Senior Data Scientist – Energy Systems',
+        'department': 'Data',
+        'location': 'Tokyo, Japan',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'JPY 15M–20M / year',
+        'description': 'Develop predictive models for clean energy output optimisation across Asia-Pacific. You will work with rich sensor datasets, partner with engineering teams, and directly influence grid reliability for 60 million households.',
+        'application_url': 'https://careers.starkindustries.com/apply/data-scientist-apac',
+    },
+    # ── Operations (2) ───────────────────────────────────────────────────────
+    {
+        'title': 'Global Operations Manager',
+        'department': 'Operations',
+        'location': 'New York, NY',
+        'work_policy': WorkPolicy.ONSITE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'USD 140K–175K / year',
+        'description': 'Oversee day-to-day operations across our North American facilities. Drive process efficiency, own vendor relationships, and ensure our labs and manufacturing sites run at peak capacity.',
+        'application_url': 'https://careers.starkindustries.com/apply/ops-manager',
+    },
+    {
+        'title': 'Technical Operations Coordinator',
+        'department': 'Operations',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.ONSITE,
+        'job_type': JobType.CONTRACT,
+        'experience_level': ExperienceLevel.ENTRY,
+        'salary_range': 'USD 65K–80K / year',
+        'description': '12-month contract supporting lab operations and logistics for our R&D campus. Coordinate between engineering teams, procurement, and external partners to keep our highest-priority projects unblocked.',
+        'application_url': 'https://careers.starkindustries.com/apply/ops-coordinator',
+    },
+    # ── R&D (2) ──────────────────────────────────────────────────────────────
+    {
+        'title': 'Research Scientist – Advanced Materials',
+        'department': 'R&D',
+        'location': 'Malibu, CA',
+        'work_policy': WorkPolicy.ONSITE,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.SENIOR,
+        'salary_range': 'USD 170K–220K / year',
+        'description': 'Conduct original research into next-generation composites and metamaterials for aerospace and energy applications. PhD required. Publication record and lab leadership experience preferred.',
+        'application_url': 'https://careers.starkindustries.com/apply/research-scientist',
+    },
+    {
+        'title': 'Robotics Engineer',
+        'department': 'R&D',
+        'location': 'Tokyo, Japan',
+        'work_policy': WorkPolicy.HYBRID,
+        'job_type': JobType.FULL_TIME,
+        'experience_level': ExperienceLevel.MID,
+        'salary_range': 'JPY 10M–14M / year',
+        'description': 'Design and test autonomous robotic systems for hazardous environment operations. Work within our Advanced Prototyping Lab alongside mechanical, electrical, and software engineers on prototypes that become real products.',
+        'application_url': 'https://careers.starkindustries.com/apply/robotics-engineer',
+    },
+]
+
+
 def _seed_jobs(db, company):
-    if not CSV_PATH.exists():
-        print(f'  [ERROR]   CSV not found at {CSV_PATH}', file=sys.stderr)
-        return 0, 0
-    rows = db.execute(select(Job.title, Job.location).where(Job.company_id == company.id)).all()
-    existing = {(r.title, r.location) for r in rows}
+    '''
+    Seed the curated Stark Industries demo jobs.
+
+    Idempotency: keyed on (title, department, location).
+    Existing jobs with that key are skipped.
+    Jobs in the DB that are NOT in the curated list and were created by a
+    previous seed run (identified by being OPEN with no application URL set
+    via the old CSV path) are removed so re-runs produce a clean state.
+    '''
+    # Remove jobs seeded by the old CSV path (no application_url set)
+    # so re-runs don't accumulate stale bulk-import rows.
+    from sqlalchemy import delete as sa_delete
+    old_csv_jobs = db.scalars(
+        select(Job).where(
+            Job.company_id == company.id,
+            Job.application_url.is_(None),
+        )
+    ).all()
+    removed = 0
+    for j in old_csv_jobs:
+        db.delete(j)
+        removed += 1
+    if removed:
+        db.flush()
+        print(f'  [CLEANUP] Removed {removed} old CSV-seeded jobs (no application_url)')
+
+    rows = db.execute(
+        select(Job.title, Job.department, Job.location).where(Job.company_id == company.id)
+    ).all()
+    existing = {(r.title, r.department, r.location) for r in rows}
+
     created = skipped = 0
-    with open(CSV_PATH, newline='', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for i, row in enumerate(reader):
-            title = row.get('title', '').strip()
-            location = row.get('location', '').strip() or None
-            if not title:
-                skipped += 1
-                continue
-            key = (title, location)
-            if key in existing:
-                skipped += 1
-                continue
-            wp = WORK_POLICY_MAP.get((row.get('work_policy', '') or '').strip().lower())
-            jt = EMPLOYMENT_TYPE_MAP.get((row.get('employment_type', '') or '').strip().lower(), JobType.FULL_TIME)
-            el = EXPERIENCE_MAP.get((row.get('experience_level', '') or '').strip().lower())
-            dept = row.get('department', '').strip() or None
-            sal = row.get('salary_range', '').strip() or None
-            rem = i % 10
-            status = JobStatus.OPEN if rem < 8 else (JobStatus.DRAFT if rem == 8 else JobStatus.CLOSED)
-            job = Job(company_id=company.id, title=title, location=location, department=dept, job_type=jt, work_policy=wp, experience_level=el, salary_range=sal, status=status)
-            db.add(job)
-            existing.add(key)
-            created += 1
+    for spec in STARK_JOBS:
+        key = (spec['title'], spec['department'], spec['location'])
+        if key in existing:
+            skipped += 1
+            continue
+        job = Job(
+            company_id=company.id,
+            title=spec['title'],
+            department=spec['department'],
+            location=spec['location'],
+            work_policy=spec['work_policy'],
+            job_type=spec['job_type'],
+            experience_level=spec['experience_level'],
+            salary_range=spec['salary_range'],
+            description=spec.get('description'),
+            application_url=spec.get('application_url'),
+            status=JobStatus.OPEN,
+        )
+        db.add(job)
+        existing.add(key)
+        created += 1
     db.flush()
     return created, skipped
 
