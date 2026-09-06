@@ -1,4 +1,5 @@
 import { PreviewProps, InspectorProps } from "./registry";
+import { SectionIcon } from "./SectionIcon";
 
 // ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
@@ -47,11 +48,15 @@ export function BenefitsPreview({ data }: PreviewProps) {
               <div key={i} className="flex flex-col gap-2">
                 {item.icon && (
                   <div
-                    className="h-9 w-9 rounded-2xl flex items-center justify-center text-lg mb-1"
+                    className="h-9 w-9 rounded-2xl flex items-center justify-center mb-1"
                     style={{ backgroundColor: "var(--orange-bg)" }}
                     aria-hidden="true"
                   >
-                    {item.icon}
+                    <SectionIcon
+                      icon={item.icon}
+                      size={18}
+                      style={{ color: "var(--orange)" }}
+                    />
                   </div>
                 )}
                 <h3

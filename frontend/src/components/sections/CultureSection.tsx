@@ -1,5 +1,6 @@
 import { PreviewProps, InspectorProps } from "./registry";
 import { AIAssistPanel } from "@/components/builder/AIAssistPanel";
+import { SectionIcon } from "./SectionIcon";
 
 // ─── PREVIEW ─────────────────────────────────────────────────────────────────
 
@@ -60,13 +61,15 @@ export function CulturePreview({ data }: PreviewProps) {
               >
                 {v.icon && (
                   <div
-                    className="h-10 w-10 rounded-2xl flex items-center justify-center text-xl mb-5"
-                    style={{
-                      backgroundColor: "var(--lavender-bg)",
-                    }}
+                    className="h-10 w-10 rounded-2xl flex items-center justify-center mb-5"
+                    style={{ backgroundColor: "var(--lavender-bg)" }}
                     aria-hidden="true"
                   >
-                    {v.icon}
+                    <SectionIcon
+                      icon={v.icon}
+                      size={20}
+                      style={{ color: "var(--lavender)" }}
+                    />
                   </div>
                 )}
                 <h3
