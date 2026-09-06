@@ -229,10 +229,13 @@ export default function LoginPage() {
               </div>
               <div>
                 <p className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
-                  Explore the demo workspace
+                  Demo Account
                 </p>
-                <p className="text-xs mt-0.5" style={{ color: "var(--muted-ink)" }}>
-                  Try CareerOS with Stark Industries sample data
+                <p className="text-xs mt-1 font-mono" style={{ color: "var(--muted-ink)" }}>
+                  demo@careeros.dev
+                </p>
+                <p className="text-xs font-mono" style={{ color: "var(--muted-ink)" }}>
+                  Demo@12345
                 </p>
               </div>
             </div>
@@ -257,7 +260,7 @@ export default function LoginPage() {
                   Signing in…
                 </span>
               ) : (
-                "Use demo account"
+                "Continue with Demo Account"
               )}
             </button>
           </div>

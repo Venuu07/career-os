@@ -332,6 +332,20 @@ export default function RegisterPage() {
             </Link>
           </p>
 
+          <p
+            className="mt-3 text-center text-sm"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            Already have demo access?{" "}
+            <Link
+              href="/login"
+              className="underline-offset-2 hover:underline transition-all"
+              style={{ color: "var(--ink)" }}
+            >
+              Try the demo →
+            </Link>
+          </p>
+
           {/* Legal */}
           <p
             className="mt-6 text-center text-xs leading-relaxed"
