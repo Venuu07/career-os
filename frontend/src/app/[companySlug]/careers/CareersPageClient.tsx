@@ -17,17 +17,25 @@ function formatExperience(level: string): string {
   return level.charAt(0).toUpperCase() + level.slice(1) + " level";
 }
 
-function getDaysAgo(dateString: string): string {
+function formatWorkPolicy(policy: string): string {
+  const map: Record<string, string> = { REMOTE: "Remote", HYBRID: "Hybrid", ONSITE: "On-site" };
+  return map[policy] ?? policy;
+}
+
+
+function getFreshness(dateString: string | null | undefined): { label: string; muted: boolean } | null {
+  if (!dateString) return null;
   const date = new Date(dateString);
-  const now = new Date();
-  const diffDays = Math.ceil(
-    Math.abs(now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24)
-  );
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 30) return `${diffDays}d ago`;
-  const m = Math.floor(diffDays / 30);
-  return `${m}mo ago`;
+  if (isNaN(date.getTime())) return null;
+  const diffDays = Math.floor((Date.now() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return null;
+  if (diffDays === 0) return { label: "Posted today", muted: false };
+  if (diffDays === 1) return { label: "Posted yesterday", muted: false };
+  if (diffDays < 7) return { label: `Posted ${diffDays} days ago`, muted: false };
+  if (diffDays < 14) return { label: "Posted last week", muted: true };
+  if (diffDays < 30) return { label: `Posted ${Math.floor(diffDays / 7)} weeks ago`, muted: true };
+  if (diffDays < 90) return { label: `Posted ${Math.floor(diffDays / 30)} month${Math.floor(diffDays / 30) > 1 ? "s" : ""} ago`, muted: true };
+  return null;
 }
 
 function groupByDepartment(jobs: JobResponse[]): Record<string, JobResponse[]> {
@@ -203,11 +211,13 @@ function PublicJobRow({
 }) {
   const meta = [
     job.location,
+    job.work_policy ? formatWorkPolicy(job.work_policy) : null,
     job.job_type ? formatJobType(job.job_type) : null,
     job.experience_level ? formatExperience(job.experience_level) : null,
   ].filter(Boolean);
 
-  const postedAt = job.created_at ? getDaysAgo(job.created_at) : null;
+  const freshness = job.created_at ? getFreshness(job.created_at) : null;
+  const postedAt = freshness?.label ?? null;
 
   return (
     <Link
@@ -255,7 +265,7 @@ function PublicJobRow({
           {postedAt && (
             <span
               className="text-xs hidden sm:block"
-              style={{ color: "var(--muted-ink)", opacity: 0.6 }}
+              style={{ color: "var(--muted-ink)", opacity: freshness?.muted ? 0.45 : 0.6 }}
             >
               {postedAt}
             </span>
