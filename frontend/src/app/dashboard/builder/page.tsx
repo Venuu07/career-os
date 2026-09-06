@@ -13,7 +13,10 @@ function BuilderLayout() {
   const { state } = useBuilder();
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-zinc-50 dark:bg-black font-sans">
+    <div
+      className="flex flex-col h-screen overflow-hidden"
+      style={{ backgroundColor: "var(--canvas)", fontFamily: "var(--font-onest, Onest, system-ui, sans-serif)" }}
+    >
       <TopBar />
       <div className="flex flex-1 overflow-hidden">
         {!state.isCandidatePreview && <LeftPane />}
@@ -32,9 +35,6 @@ export default function BuilderPage() {
     async function loadDraft() {
       try {
         const pageData = await apiFetch("/api/career-page");
-        // If a draft exists, use it. Otherwise, initialize empty arrays.
-        // Wait, the API creates an empty draft if none exists when we call PUT /draft, 
-        // but GET /api/career-page returns draft_version.
         const draft = pageData?.draft_version;
         setInitialData({
           sections: draft?.sections_config || [],
@@ -51,16 +51,43 @@ export default function BuilderPage() {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="text-sm font-medium text-zinc-500 animate-pulse">Loading builder...</div>
+      <div
+        className="flex h-screen items-center justify-center"
+        style={{ backgroundColor: "var(--canvas)" }}
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div
+            className="h-10 w-10 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: "var(--ink)" }}
+          >
+            <span className="text-white text-sm font-bold">C</span>
+          </div>
+          <span className="text-sm font-medium" style={{ color: "var(--muted-ink)" }}>
+            Loading builder…
+          </span>
+        </div>
       </div>
     );
   }
 
   if (!initialData) {
     return (
-      <div className="flex h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="text-sm font-medium text-red-500">Failed to load careers page data.</div>
+      <div
+        className="flex h-screen items-center justify-center"
+        style={{ backgroundColor: "var(--canvas)" }}
+      >
+        <div className="text-center">
+          <p className="text-sm font-semibold mb-1" style={{ color: "var(--ink)" }}>
+            Failed to load careers page data.
+          </p>
+          <button
+            onClick={() => window.location.reload()}
+            className="text-xs"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            Try reloading
+          </button>
+        </div>
       </div>
     );
   }

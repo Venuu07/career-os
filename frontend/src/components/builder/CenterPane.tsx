@@ -20,9 +20,9 @@ export function CenterPane() {
   const getContainerStyle = (): React.CSSProperties => {
     switch (state.viewport) {
       case "mobile":
-        return { width: "390px", borderRadius: "40px", minHeight: "100%" };
+        return { width: "390px", borderRadius: "32px", minHeight: "100%" };
       case "tablet":
-        return { width: "768px", borderRadius: "24px", minHeight: "100%" };
+        return { width: "768px", borderRadius: "20px", minHeight: "100%" };
       case "desktop":
       default:
         return { width: "100%", borderRadius: "0", minHeight: "100%" };
@@ -34,22 +34,38 @@ export function CenterPane() {
 
   return (
     <div
-      className={`flex-1 bg-zinc-100 dark:bg-zinc-900 overflow-auto flex flex-col items-center ${
+      className={`flex-1 overflow-auto flex flex-col items-center ${
         isNarrow ? "py-8 px-4" : "p-0"
       }`}
+      style={{ backgroundColor: "var(--canvas)" }}
     >
       {/* Viewport label */}
       {isNarrow && (
-        <div className="mb-3 flex items-center gap-2">
-          <span className="text-xs font-medium text-zinc-400 bg-zinc-50 dark:bg-zinc-800 px-3 py-1 rounded-full border border-zinc-200 dark:border-zinc-700">
-            {state.viewport === "mobile" ? "390px mobile" : "768px tablet"}
+        <div className="mb-4 flex items-center gap-2">
+          <span
+            className="text-xs font-medium px-3 py-1 rounded-full"
+            style={{
+              backgroundColor: "var(--surface)",
+              border: "1px solid var(--border-subtle)",
+              color: "var(--muted-ink)",
+            }}
+          >
+            {state.viewport === "mobile" ? "390px · Mobile" : "768px · Tablet"}
           </span>
         </div>
       )}
 
+      {/* Page frame */}
       <div
-        className="bg-white dark:bg-zinc-950 shadow-2xl border border-zinc-200/50 dark:border-zinc-800/50 overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out"
-        style={containerStyle}
+        className="overflow-y-auto overflow-x-hidden transition-all duration-300 ease-in-out"
+        style={{
+          ...containerStyle,
+          backgroundColor: "#ffffff",
+          boxShadow: isNarrow
+            ? "0 8px 40px rgba(30,35,48,0.14), 0 2px 8px rgba(30,35,48,0.06)"
+            : "none",
+          border: isNarrow ? "none" : "none",
+        }}
       >
         <CareerPageRenderer
           sections={state.sections}

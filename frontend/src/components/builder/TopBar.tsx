@@ -16,6 +16,7 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
+  Circle,
 } from "lucide-react";
 import {
   Dialog,
@@ -35,13 +36,16 @@ export function TopBar() {
 
   const saveDraft = useCallback(async () => {
     if (state.saveStatus === "saving") return true;
-    
+
     const currentRevision = state.localRevision;
     dispatch({ type: "SAVE_START" });
     try {
       await apiFetch("/api/career-page/draft", {
         method: "PUT",
-        body: JSON.stringify({ sections_config: state.sections, theme_config: state.theme }),
+        body: JSON.stringify({
+          sections_config: state.sections,
+          theme_config: state.theme,
+        }),
       });
       dispatch({ type: "SAVE_SUCCESS", payload: { revision: currentRevision } });
       return true;
@@ -56,14 +60,13 @@ export function TopBar() {
     try {
       if (state.hasUnsavedChanges) {
         const saved = await saveDraft();
-        if (!saved) {
-          throw new Error("Failed to save draft before publishing");
-        }
+        if (!saved) throw new Error("Failed to save draft before publishing");
       }
-      const result = await apiFetch("/api/career-page/publish", { method: "POST" });
+      const result = await apiFetch("/api/career-page/publish", {
+        method: "POST",
+      });
       const slug = result?.slug || company?.slug || "";
       setPublishedSlug(slug);
-      // Re-init builder with the newly published draft
       const draft = result?.draft_version;
       if (draft) {
         dispatch({
@@ -81,31 +84,52 @@ export function TopBar() {
     }
   };
 
-  const saveIndicator = () => {
+  // ── Save indicator ─────────────────────────────────────────────────────────
+
+  const renderSaveIndicator = () => {
     switch (state.saveStatus) {
       case "saving":
         return (
-          <span className="flex items-center gap-1.5 text-zinc-400">
-            <Loader2 className="h-3 w-3 animate-spin" /> Saving
+          <span
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: "var(--muted-ink)" }}
+          >
+            <Loader2 className="h-3 w-3 animate-spin" />
+            Saving…
           </span>
         );
       case "saved":
         return (
-          <span className="flex items-center gap-1.5 text-emerald-500">
-            <CheckCircle2 className="h-3 w-3" /> Saved
+          <span
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: "var(--green)" }}
+          >
+            <CheckCircle2 className="h-3 w-3" />
+            Saved
           </span>
         );
       case "error":
         return (
-          <span className="flex items-center gap-1.5 text-red-500">
-            <AlertCircle className="h-3 w-3" /> Save failed
+          <span
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: "var(--orange)" }}
+          >
+            <AlertCircle className="h-3 w-3" />
+            Save failed
           </span>
         );
       default:
         return (
-          <span className="flex items-center gap-1.5 text-zinc-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700" />
-            {state.hasUnsavedChanges ? "Editing" : "Idle"}
+          <span
+            className="flex items-center gap-1.5 text-xs font-medium"
+            style={{ color: state.hasUnsavedChanges ? "var(--orange)" : "var(--muted-ink)" }}
+          >
+            <Circle
+              className="h-2 w-2"
+              fill={state.hasUnsavedChanges ? "var(--orange)" : "var(--border-subtle)"}
+              style={{ strokeWidth: 0 }}
+            />
+            {state.hasUnsavedChanges ? "Unsaved changes" : "No changes"}
           </span>
         );
     }
@@ -113,77 +137,137 @@ export function TopBar() {
 
   return (
     <>
-      <header className="h-12 bg-white/95 dark:bg-zinc-950/95 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between px-4 shrink-0 z-20 backdrop-blur-sm">
-        {/* Left: back + title + save status */}
-        <div className="flex items-center gap-3">
+      <header
+        className="h-12 flex items-center justify-between px-4 shrink-0 z-20"
+        style={{
+          backgroundColor: "var(--surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
+      >
+        {/* ── Left: back + breadcrumb + save status ─────────────────── */}
+        <div className="flex items-center gap-3 min-w-0">
           <Link
             href="/dashboard"
-            className="flex items-center gap-1 text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+            className="flex items-center gap-1 transition-opacity hover:opacity-60 shrink-0"
             aria-label="Back to dashboard"
+            style={{ color: "var(--muted-ink)" }}
           >
             <ChevronLeft className="h-4 w-4" />
           </Link>
-          <div className="hidden sm:flex items-center gap-2">
-            <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+
+          <div className="hidden sm:flex items-center gap-2 min-w-0">
+            <div
+              className="h-5 w-5 rounded-md flex items-center justify-center shrink-0"
+              style={{ backgroundColor: "var(--ink)" }}
+            >
+              <span className="text-white text-[9px] font-bold">C</span>
+            </div>
+            <span
+              className="text-sm font-semibold truncate max-w-32"
+              style={{ color: "var(--ink)" }}
+            >
               {company?.name ?? "Careers Page"}
             </span>
-            <span className="text-zinc-300 dark:text-zinc-700">·</span>
-            <span className="text-xs">{saveIndicator()}</span>
+            <span style={{ color: "var(--border-subtle)" }}>/</span>
+            <span
+              className="text-xs font-medium"
+              style={{ color: "var(--muted-ink)" }}
+            >
+              Builder
+            </span>
+          </div>
+
+          <div
+            className="hidden md:flex h-5 w-px shrink-0"
+            style={{ backgroundColor: "var(--border-subtle)" }}
+          />
+
+          <div className="hidden md:block">
+            {renderSaveIndicator()}
           </div>
         </div>
 
-        {/* Center: viewport switcher */}
-        <div className="flex items-center gap-0.5 bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-lg">
-          {(["desktop", "tablet", "mobile"] as const).map((vp) => (
-            <button
-              key={vp}
-              type="button"
-              className={`h-7 px-2.5 rounded-md flex items-center justify-center transition-colors ${
-                state.viewport === vp
-                  ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                  : "text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
-              }`}
-              onClick={() => dispatch({ type: "SET_VIEWPORT", payload: vp })}
-              aria-label={vp}
-              title={vp.charAt(0).toUpperCase() + vp.slice(1)}
-            >
-              {vp === "desktop" && <Monitor className="h-3.5 w-3.5" />}
-              {vp === "tablet" && <Tablet className="h-3.5 w-3.5" />}
-              {vp === "mobile" && <Smartphone className="h-3.5 w-3.5" />}
-            </button>
-          ))}
+        {/* ── Center: viewport switcher ──────────────────────────────── */}
+        <div
+          className="flex items-center gap-0.5 p-0.5 rounded-xl"
+          style={{
+            backgroundColor: "var(--canvas)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          {(["desktop", "tablet", "mobile"] as const).map((vp) => {
+            const isActive = state.viewport === vp;
+            return (
+              <button
+                key={vp}
+                type="button"
+                className="h-7 w-7 rounded-lg flex items-center justify-center transition-all"
+                style={{
+                  backgroundColor: isActive ? "var(--surface)" : "transparent",
+                  color: isActive ? "var(--ink)" : "var(--muted-ink)",
+                  boxShadow: isActive ? "0 1px 3px rgba(0,0,0,0.08)" : "none",
+                }}
+                onClick={() => dispatch({ type: "SET_VIEWPORT", payload: vp })}
+                aria-label={vp}
+                title={vp.charAt(0).toUpperCase() + vp.slice(1)}
+              >
+                {vp === "desktop" && <Monitor className="h-3.5 w-3.5" />}
+                {vp === "tablet" && <Tablet className="h-3.5 w-3.5" />}
+                {vp === "mobile" && <Smartphone className="h-3.5 w-3.5" />}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Right: preview + publish */}
+        {/* ── Right: preview + save draft + publish ─────────────────── */}
         <div className="flex items-center gap-2">
+          {/* Preview toggle */}
           <button
             type="button"
-            className="hidden sm:flex items-center gap-1.5 h-8 px-3 rounded-lg text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 h-7 px-3 rounded-full text-xs font-medium transition-all"
+            style={{
+              backgroundColor: state.isCandidatePreview
+                ? "var(--green-bg)"
+                : "var(--canvas)",
+              color: state.isCandidatePreview ? "var(--ink)" : "var(--muted-ink)",
+              border: `1.5px solid ${state.isCandidatePreview ? "var(--green)" : "var(--border-subtle)"}`,
+            }}
             onClick={() => dispatch({ type: "TOGGLE_PREVIEW" })}
           >
             {state.isCandidatePreview ? (
               <>
-                <EyeOff className="h-3.5 w-3.5" /> Exit Preview
+                <EyeOff className="h-3 w-3" /> Exit Preview
               </>
             ) : (
               <>
-                <Eye className="h-3.5 w-3.5" /> Preview
+                <Eye className="h-3 w-3" /> Preview
               </>
             )}
           </button>
-          
+
+          {/* Save Draft */}
           <button
             type="button"
-            className="h-8 px-4 rounded-lg text-xs font-semibold border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors disabled:opacity-50"
+            className="h-7 px-3 rounded-full text-xs font-semibold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              backgroundColor: "var(--canvas)",
+              color: "var(--ink)",
+              border: "1.5px solid var(--border-subtle)",
+            }}
             onClick={saveDraft}
             disabled={!state.hasUnsavedChanges || state.saveStatus === "saving"}
           >
             Save Draft
           </button>
 
+          {/* Publish */}
           <button
             type="button"
-            className="h-8 px-4 rounded-lg text-xs font-semibold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors"
+            className="h-7 px-3.5 rounded-full text-xs font-semibold transition-all hover:opacity-88"
+            style={{
+              backgroundColor: "var(--ink)",
+              color: "var(--canvas)",
+            }}
             onClick={() => setIsPublishDialogOpen(true)}
           >
             Publish
@@ -191,7 +275,7 @@ export function TopBar() {
         </div>
       </header>
 
-      {/* Publish Dialog */}
+      {/* ── Publish Dialog ──────────────────────────────────────────────── */}
       <Dialog open={isPublishDialogOpen} onOpenChange={setIsPublishDialogOpen}>
         <DialogContent className="sm:max-w-md">
           {!publishedSlug ? (
@@ -206,7 +290,11 @@ export function TopBar() {
               <DialogFooter className="mt-4">
                 <button
                   type="button"
-                  className="h-9 px-4 rounded-lg text-sm font-medium border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                  className="h-9 px-4 rounded-full text-sm font-medium transition-all hover:opacity-70"
+                  style={{
+                    border: "1.5px solid var(--border-subtle)",
+                    color: "var(--muted-ink)",
+                  }}
                   onClick={() => setIsPublishDialogOpen(false)}
                 >
                   Cancel
@@ -215,11 +303,16 @@ export function TopBar() {
                   type="button"
                   onClick={handlePublish}
                   disabled={isPublishing}
-                  className="h-9 px-4 rounded-lg text-sm font-semibold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors disabled:opacity-50"
+                  className="h-9 px-4 rounded-full text-sm font-semibold transition-all disabled:opacity-50"
+                  style={{
+                    backgroundColor: "var(--ink)",
+                    color: "var(--canvas)",
+                  }}
                 >
                   {isPublishing ? (
                     <span className="flex items-center gap-2">
-                      <Loader2 className="h-3.5 w-3.5 animate-spin" /> Publishing...
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Publishing…
                     </span>
                   ) : (
                     "Publish to Live"
@@ -231,14 +324,24 @@ export function TopBar() {
             <>
               <DialogHeader>
                 <DialogTitle className="flex items-center gap-2">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-500" />
+                  <CheckCircle2
+                    className="h-5 w-5"
+                    style={{ color: "var(--green)" }}
+                  />
                   Published!
                 </DialogTitle>
                 <DialogDescription>
                   Your careers page is now live and visible to candidates.
                 </DialogDescription>
               </DialogHeader>
-              <div className="mt-2 p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 font-mono text-sm text-zinc-700 dark:text-zinc-300 break-all">
+              <div
+                className="mt-2 p-3 rounded-xl font-mono text-sm break-all"
+                style={{
+                  backgroundColor: "var(--green-bg)",
+                  border: "1px solid var(--green)",
+                  color: "var(--ink)",
+                }}
+              >
                 /{publishedSlug}/careers
               </div>
               <DialogFooter className="mt-4 flex-col sm:flex-row gap-2">
@@ -246,13 +349,21 @@ export function TopBar() {
                   href={`/${publishedSlug}/careers`}
                   target="_blank"
                   rel="noreferrer"
-                  className="flex-1 h-9 inline-flex items-center justify-center gap-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                  className="flex-1 h-9 inline-flex items-center justify-center gap-2 rounded-full text-sm font-medium transition-all hover:opacity-70"
+                  style={{
+                    border: "1.5px solid var(--border-subtle)",
+                    color: "var(--ink)",
+                  }}
                 >
                   <ExternalLink className="h-3.5 w-3.5" /> View Live
                 </a>
                 <button
                   type="button"
-                  className="flex-1 h-9 rounded-lg text-sm font-semibold bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-700 dark:hover:bg-zinc-300 transition-colors"
+                  className="flex-1 h-9 rounded-full text-sm font-semibold transition-all hover:opacity-88"
+                  style={{
+                    backgroundColor: "var(--ink)",
+                    color: "var(--canvas)",
+                  }}
                   onClick={() => {
                     setIsPublishDialogOpen(false);
                     setPublishedSlug(null);

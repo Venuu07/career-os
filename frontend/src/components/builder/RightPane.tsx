@@ -14,6 +14,59 @@ const FONT_OPTIONS = [
   { label: "DM Sans", value: "'DM Sans', sans-serif" },
 ];
 
+// ── Shared field primitives ───────────────────────────────────────────────────
+
+const fieldInputClass = `w-full h-9 px-3 text-sm rounded-xl font-[inherit]
+  transition-all outline-none`;
+
+const fieldInputStyle = {
+  backgroundColor: "var(--canvas)",
+  border: "1.5px solid var(--border-subtle)",
+  color: "var(--ink)",
+};
+
+const fieldInputFocusHandlers = {
+  onFocus: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = "var(--green)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px var(--green-bg)";
+  },
+  onBlur: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    e.currentTarget.style.borderColor = "var(--border-subtle)";
+    e.currentTarget.style.boxShadow = "none";
+  },
+};
+
+// ── Section label ─────────────────────────────────────────────────────────────
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <label
+      className="block text-xs font-semibold mb-1.5"
+      style={{ color: "var(--muted-ink)" }}
+    >
+      {children}
+    </label>
+  );
+}
+
+// ── Group header ──────────────────────────────────────────────────────────────
+
+function GroupHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <div
+      className="px-4 py-2 text-eyebrow"
+      style={{
+        color: "var(--muted-ink)",
+        borderBottom: "1px solid var(--border-subtle)",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+// ─── Main RightPane ───────────────────────────────────────────────────────────
+
 export function RightPane() {
   const { state, dispatch } = useBuilder();
   const [activeTab, setActiveTab] = useState<Tab>("section");
@@ -31,36 +84,48 @@ export function RightPane() {
   };
 
   return (
-    <div className="w-72 shrink-0 bg-white dark:bg-zinc-950 border-l border-zinc-200 dark:border-zinc-800 flex flex-col h-full">
-      {/* Tab bar */}
-      <div className="p-3 border-b border-zinc-100 dark:border-zinc-900">
-        <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-lg">
-          <button
-            type="button"
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              activeTab === "section"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-            }`}
-            onClick={() => setActiveTab("section")}
-          >
-            Inspector
-          </button>
-          <button
-            type="button"
-            className={`flex-1 py-1.5 text-xs font-semibold rounded-md transition-all ${
-              activeTab === "theme"
-                ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
-            }`}
-            onClick={() => setActiveTab("theme")}
-          >
-            Theme
-          </button>
+    <div
+      className="w-72 shrink-0 flex flex-col h-full"
+      style={{
+        backgroundColor: "var(--surface)",
+        borderLeft: "1px solid var(--border-subtle)",
+      }}
+    >
+      {/* ── Tab bar ──────────────────────────────────────────────────────── */}
+      <div
+        className="px-3 py-2.5 shrink-0"
+        style={{ borderBottom: "1px solid var(--border-subtle)" }}
+      >
+        <div
+          className="flex p-0.5 rounded-xl"
+          style={{
+            backgroundColor: "var(--canvas)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
+          {(["section", "theme"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              className="flex-1 py-1.5 text-xs font-semibold rounded-lg transition-all"
+              style={{
+                backgroundColor:
+                  activeTab === tab ? "var(--surface)" : "transparent",
+                color: activeTab === tab ? "var(--ink)" : "var(--muted-ink)",
+                boxShadow:
+                  activeTab === tab
+                    ? "0 1px 3px rgba(30,35,48,0.08)"
+                    : "none",
+              }}
+              onClick={() => setActiveTab(tab)}
+            >
+              {tab === "section" ? "Inspector" : "Theme"}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Content */}
+      {/* ── Content ──────────────────────────────────────────────────────── */}
       <div className="flex-1 overflow-y-auto">
         {activeTab === "section" ? (
           <SectionInspectorTab
@@ -75,28 +140,34 @@ export function RightPane() {
   );
 }
 
-// ————————————————————————————————————————
-// Section Inspector Tab
-// ————————————————————————————————————————
+// ─── Section Inspector Tab ────────────────────────────────────────────────────
 
 function SectionInspectorTab({
   selectedSection,
   onUpdate,
 }: {
-  selectedSection: { id: string; type: string; data: Record<string, unknown> } | undefined;
+  selectedSection:
+    | { id: string; type: string; data: Record<string, unknown> }
+    | undefined;
   onUpdate: (data: Record<string, unknown>) => void;
 }) {
   if (!selectedSection) {
     return (
       <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-        <div className="h-10 w-10 rounded-xl border border-zinc-200 dark:border-zinc-800 flex items-center justify-center text-zinc-400 mb-3 text-lg">
+        <div
+          className="h-12 w-12 rounded-2xl flex items-center justify-center mb-4 text-xl"
+          style={{
+            backgroundColor: "var(--canvas)",
+            border: "1px solid var(--border-subtle)",
+          }}
+        >
           ←
         </div>
-        <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+        <p className="text-sm font-semibold mb-1" style={{ color: "var(--ink)" }}>
           Select a section
         </p>
-        <p className="text-xs text-zinc-400 dark:text-zinc-600 mt-1">
-          Click a section in the left panel to edit its content.
+        <p className="text-xs leading-relaxed" style={{ color: "var(--muted-ink)" }}>
+          Click any section in the left panel to edit its content here.
         </p>
       </div>
     );
@@ -105,7 +176,7 @@ function SectionInspectorTab({
   const def = sectionRegistry[selectedSection.type];
   if (!def) {
     return (
-      <div className="p-4 text-sm text-zinc-400">
+      <div className="p-4 text-xs" style={{ color: "var(--muted-ink)" }}>
         Unknown section type: {selectedSection.type}
       </div>
     );
@@ -115,17 +186,43 @@ function SectionInspectorTab({
 
   return (
     <div>
-      <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-900 sticky top-0 bg-white/90 dark:bg-zinc-950/90 backdrop-blur-sm z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-base">{def.icon}</span>
-          <div>
-            <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+      {/* Section header — sticky */}
+      <div
+        className="px-4 py-3 sticky top-0 z-10"
+        style={{
+          backgroundColor: "var(--surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
+      >
+        <div className="flex items-center gap-2.5">
+          <div
+            className="h-8 w-8 rounded-xl flex items-center justify-center shrink-0 text-sm"
+            style={{
+              backgroundColor: "var(--lavender-bg)",
+              color: "var(--ink)",
+              border: "1px solid var(--lavender)",
+            }}
+          >
+            {def.icon}
+          </div>
+          <div className="min-w-0">
+            <h2
+              className="text-sm font-semibold leading-tight"
+              style={{ color: "var(--ink)" }}
+            >
               {def.label}
             </h2>
-            <p className="text-xs text-zinc-400 truncate">{def.description}</p>
+            <p
+              className="text-xs truncate leading-tight mt-0.5"
+              style={{ color: "var(--muted-ink)" }}
+            >
+              {def.description}
+            </p>
           </div>
         </div>
       </div>
+
+      {/* Inspector fields */}
       <div className="p-4">
         <Inspector data={selectedSection.data} updateData={onUpdate} />
       </div>
@@ -133,9 +230,7 @@ function SectionInspectorTab({
   );
 }
 
-// ————————————————————————————————————————
-// Theme Tab
-// ————————————————————————————————————————
+// ─── Theme Tab ────────────────────────────────────────────────────────────────
 
 function ThemeTab() {
   const { state, dispatch } = useBuilder();
@@ -146,38 +241,50 @@ function ThemeTab() {
   };
 
   return (
-    <div className="p-4 space-y-5">
-      <div>
-        <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
+    <div>
+      {/* Header */}
+      <div
+        className="px-4 py-3 sticky top-0 z-10"
+        style={{
+          backgroundColor: "var(--surface)",
+          borderBottom: "1px solid var(--border-subtle)",
+        }}
+      >
+        <h2 className="text-sm font-semibold" style={{ color: "var(--ink)" }}>
           Theme
         </h2>
-        <p className="text-xs text-zinc-400">
-          These settings apply across all sections of your careers page.
+        <p className="text-xs mt-0.5" style={{ color: "var(--muted-ink)" }}>
+          Applied globally across all sections.
         </p>
       </div>
 
-      <ColorField
-        label="Primary color"
-        value={theme.primary_color || "#18181b"}
-        onChange={(v) => set("primary_color", v)}
-        description="Used for buttons, headings, and accents."
-      />
+      {/* Colors group */}
+      <GroupHeader>Colors</GroupHeader>
+      <div className="px-4 py-3 space-y-4">
+        <ColorField
+          label="Primary color"
+          value={theme.primary_color || "#18181b"}
+          onChange={(v) => set("primary_color", v)}
+          description="Buttons, headings, and key accents."
+        />
+        <ColorField
+          label="Background color"
+          value={theme.background_color || "#fafafa"}
+          onChange={(v) => set("background_color", v)}
+          description="Hero section background."
+        />
+      </div>
 
-      <ColorField
-        label="Background color"
-        value={theme.background_color || "#fafafa"}
-        onChange={(v) => set("background_color", v)}
-        description="Used for the Hero section background."
-      />
-
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Font family
-        </label>
+      {/* Typography group */}
+      <GroupHeader>Typography</GroupHeader>
+      <div className="px-4 py-3">
+        <FieldLabel>Font family</FieldLabel>
         <select
           value={theme.font_family || ""}
           onChange={(e) => set("font_family", e.target.value)}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-[oklch(0.6_0.15_250)] transition"
+          {...fieldInputFocusHandlers}
+          className={fieldInputClass}
+          style={{ ...fieldInputStyle, height: "2.25rem", appearance: "auto" }}
         >
           {FONT_OPTIONS.map((f) => (
             <option key={f.value} value={f.value}>
@@ -187,19 +294,27 @@ function ThemeTab() {
         </select>
       </div>
 
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Logo URL
-        </label>
+      {/* Branding group */}
+      <GroupHeader>Branding</GroupHeader>
+      <div className="px-4 py-3">
+        <FieldLabel>Logo URL</FieldLabel>
         <input
           type="url"
           value={theme.logo_url || ""}
           onChange={(e) => set("logo_url", e.target.value)}
           placeholder="https://..."
-          className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[oklch(0.6_0.15_250)] transition"
+          {...fieldInputFocusHandlers}
+          className={fieldInputClass}
+          style={fieldInputStyle}
         />
         {theme.logo_url && (
-          <div className="mt-2 p-2 rounded-lg border border-zinc-100 dark:border-zinc-800 flex items-center justify-center">
+          <div
+            className="mt-2.5 p-3 rounded-xl flex items-center justify-center"
+            style={{
+              backgroundColor: "var(--canvas)",
+              border: "1px solid var(--border-subtle)",
+            }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={theme.logo_url}
@@ -216,6 +331,8 @@ function ThemeTab() {
   );
 }
 
+// ─── ColorField ───────────────────────────────────────────────────────────────
+
 function ColorField({
   label,
   value,
@@ -229,26 +346,41 @@ function ColorField({
 }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-        {label}
-      </label>
+      <FieldLabel>{label}</FieldLabel>
       <div className="flex items-center gap-2">
-        <input
-          type="color"
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="h-9 w-9 rounded-lg border border-zinc-200 dark:border-zinc-700 cursor-pointer shrink-0"
-          aria-label={label}
-        />
+        <div
+          className="relative shrink-0 rounded-xl overflow-hidden"
+          style={{
+            width: "2.25rem",
+            height: "2.25rem",
+            border: "1.5px solid var(--border-subtle)",
+          }}
+        >
+          <input
+            type="color"
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            aria-label={label}
+          />
+          <div
+            className="w-full h-full rounded-xl pointer-events-none"
+            style={{ backgroundColor: value }}
+          />
+        </div>
         <input
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 h-9 px-3 text-sm rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-100 font-mono focus:outline-none focus:ring-2 focus:ring-[oklch(0.6_0.15_250)] transition"
+          {...fieldInputFocusHandlers}
+          className={`flex-1 ${fieldInputClass} font-mono`}
+          style={fieldInputStyle}
         />
       </div>
       {description && (
-        <p className="text-xs text-zinc-400">{description}</p>
+        <p className="text-xs leading-relaxed" style={{ color: "var(--muted-ink)" }}>
+          {description}
+        </p>
       )}
     </div>
   );
