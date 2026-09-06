@@ -16,12 +16,24 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-zinc-50 dark:bg-black">
-        <div className="flex flex-col items-center gap-3">
-          <div className="h-7 w-7 rounded-lg bg-[oklch(0.6_0.15_250)] flex items-center justify-center animate-pulse">
-            <span className="text-white text-xs font-bold">C</span>
+      <div
+        className="flex min-h-screen items-center justify-center"
+        style={{ backgroundColor: "var(--canvas)" }}
+      >
+        <div className="flex flex-col items-center gap-4">
+          <div
+            className="h-10 w-10 rounded-2xl flex items-center justify-center"
+            style={{ backgroundColor: "var(--ink)" }}
+          >
+            <span className="text-white text-sm font-bold tracking-tight">C</span>
           </div>
-          <p className="text-zinc-400 text-sm">Loading workspace...</p>
+          <div className="flex items-center gap-2" style={{ color: "var(--muted-ink)" }}>
+            <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+            <span className="text-sm font-medium">Loading workspace…</span>
+          </div>
         </div>
       </div>
     );
