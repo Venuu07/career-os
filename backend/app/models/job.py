@@ -31,6 +31,13 @@ class JobType(str, enum.Enum):
     INTERNSHIP = "internship"
 
 
+class WorkPolicy(str, enum.Enum):
+    """Where the work happens."""
+    ONSITE = "ONSITE"
+    REMOTE = "REMOTE"
+    HYBRID = "HYBRID"
+
+
 class ExperienceLevel(str, enum.Enum):
     ENTRY = "entry"
     MID = "mid"
@@ -71,6 +78,10 @@ class Job(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         default=JobType.FULL_TIME,
     )
+    work_policy: Mapped[WorkPolicy | None] = mapped_column(
+        SAEnum(WorkPolicy, name="work_policy", create_type=False),
+        nullable=True,
+    )
     experience_level: Mapped[ExperienceLevel | None] = mapped_column(
         SAEnum(ExperienceLevel, name="experience_level", create_type=True),
         nullable=True,
@@ -80,6 +91,12 @@ class Job(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         nullable=False,
         default=JobStatus.DRAFT,
     )
+
+    # Human-readable salary range (e.g. "$120k–$160k", "€80k–€100k")
+    salary_range: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    # Direct link to the application form/ATS (optional)
+    application_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
 
     # Relationships
     company: Mapped["Company"] = relationship(  # type: ignore[name-defined]

@@ -59,6 +59,8 @@ export interface CareersPageResponse {
   published_version: CareerPageVersionResponse | null;
 }
 
+export type WorkPolicy = "ONSITE" | "REMOTE" | "HYBRID";
+
 export interface JobResponse {
   id: string;
   title: string;
@@ -66,9 +68,13 @@ export interface JobResponse {
   location: string | null;
   description: string | null;
   job_type: "full_time" | "part_time" | "contract" | "internship";
+  work_policy: WorkPolicy | null;
   experience_level: "junior" | "mid" | "senior" | "lead" | null;
+  salary_range: string | null;
+  application_url: string | null;
   status: "open" | "closed" | "draft";
   created_at: string;
+  updated_at: string;
 }
 
 export interface PublicCareerPageResponse {
